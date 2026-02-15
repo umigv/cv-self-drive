@@ -300,7 +300,7 @@ def main():
 
     # >>> change: initialize RightTurn module
     right_turn = RightTurn(debug=False)
-    hsv_identifier = "0"
+    hsv_identifier = "1"
     # <<< end of change
 
     image_mat = sl.Mat()
