@@ -36,7 +36,7 @@ from nav_msgs.msg import OccupancyGrid, MapMetaData
 # <<< ros2 end of change
 
 # >>> change: import RightTurn and message types for waypoint publishing
-from right_turn_new import RightTurn
+from right_turn import RightTurn
 from geometry_msgs.msg import PointStamped, Pose, Quaternion, Point
 # <<< end of change
 
@@ -300,7 +300,7 @@ def main():
 
     # >>> change: initialize RightTurn module
     right_turn = RightTurn(debug=False)
-    hsv_identifier = "data/right_turn1.mp4"
+    hsv_identifier = "0"
     # <<< end of change
 
     image_mat = sl.Mat()

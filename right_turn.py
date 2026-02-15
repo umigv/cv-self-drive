@@ -60,14 +60,16 @@ class RightTurn:
     def update_mask(self):
         #defining the ranges for HSV values
         self.final, dict = self.hsv_obj.get_mask(self.image)
+
+        print(dict)
         
         self.white_mask = dict["white"]
         self.yellow_mask = dict["yellow"]
 
-        final_bgr = cv2.cvtColor(self.final, cv2.COLOR_GRAY2BGR)
-        combined = np.vstack((self.image, final_bgr))
-        cv2.namedWindow("Combined Image", cv2.WINDOW_NORMAL)
-        cv2.imshow("Combined Image", combined)
+        # final_bgr = cv2.cvtColor(self.final, cv2.COLOR_GRAY2BGR)
+        # combined = np.vstack((self.image, final_bgr))
+        # cv2.namedWindow("Combined Image", cv2.WINDOW_NORMAL)
+        # cv2.imshow("Combined Image", combined)
 
     def find_center_of_lane(self):
         pass
