@@ -15,8 +15,10 @@ class hsv:
         self.video_path = video_path
         self.barrel_mask = None
         self.barrel_boxes = None
-        self.barrel_model =  YOLO("data/obstacles.pt")
-        self.lane_model = YOLO("data/laneswithcontrast.pt")
+        self.YOLO_lanes = False
+        self.YOLO_barrels = False
+        self.barrel_model =  YOLO("obstacles.pt")
+        self.lane_model = YOLO("laneswithcontrast.pt")
         self.load_hsv_values()
         
         
