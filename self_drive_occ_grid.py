@@ -93,7 +93,7 @@ class SelfDriveNode(Node):
 
         msg = OccupancyGrid()
         msg.header.stamp = self.get_clock().now().to_msg()
-        msg.header.frame_id = 'odom'
+        msg.header.frame_id = 'base_link'
 
         info = MapMetaData()
         info.width      = self.ros_width
@@ -127,7 +127,7 @@ class SelfDriveNode(Node):
 
         msg = PointStamped()
         msg.header.stamp = self.get_clock().now().to_msg()
-        msg.header.frame_id = 'odom'
+        msg.header.frame_id = 'base_link'
         msg.point.x = odom_xyz[0]
         msg.point.y = odom_xyz[1]
         msg.point.z = odom_xyz[2]
