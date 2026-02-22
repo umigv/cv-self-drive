@@ -37,6 +37,7 @@ from nav_msgs.msg import OccupancyGrid, MapMetaData
 
 # >>> change: import RightTurn and message types for waypoint publishing
 from right_turn import RightTurn
+from left_turn import LeftTurn
 from geometry_msgs.msg import PointStamped, Pose, Quaternion, Point
 # <<< end of change
 
@@ -240,8 +241,8 @@ def print_params(calibration_params: sl.CalibrationParameters):
 
     print(f"Stereo Baseline (tx): {tx:.6f} meters")
 
-
-def main():
+# turn_type can be "right" or "left"
+def main(turn_type="right"):
     # >>> ros2 change
     rclpy.init()
     # <<< ros2 end of change
@@ -298,10 +299,19 @@ def main():
         gw_mm=drive_conf.gw, gh_mm=drive_conf.gh, cw_mm=drive_conf.cw)
     # <<< end of change
 
-    # >>> change: initialize RightTurn module
-    right_turn = RightTurn(debug=False)
+    turn = None
+    if(turn_type == "right"):
+        turn = RightTurn(debug=False)
+    elif(turn_type == "left"):
+        turn = LeftTurn(debug=False)
+    else:
+        print(f"Invalid turn type: {turn_type}. Must be 'right' or 'left'.")
+        exit(1)
     hsv_identifier = "1"
-    # <<< end of change
+    # # >>> change: initialize RightTurn module
+    # right_turn = RightTurn(debug=False)
+    # hsv_identifier = "1"
+    # # <<< end of change
 
     image_mat = sl.Mat()
     depth_m = sl.Mat()
@@ -319,14 +329,14 @@ def main():
             depths = ransac.plane.clean_depths(depth_m.get_data())
 
             # >>> change: run RightTurn on the frame to get final mask + pixel waypoint
-            rt_mask, rt_centroid = right_turn.run_frame(hsv_identifier, image)
+            turn_mask, turn_centroid = turn.run_frame(hsv_identifier, image)
             # <<< end of change
 
             # >>> change: replace hsv_and_ransac with external_mask_and_ransac
             # OLD: ransac_output, ransac_coeffs = ransac.plane.hsv_and_ransac(
             #          image, depths, 60, (1, 16), 0.15)
             ransac_output, ransac_coeffs = ransac.plane.external_mask_and_ransac(
-                rt_mask, depths)
+                turn_mask, depths)
             # <<< end of change
 
             rc = ransac.plane.real_coeffs(ransac_coeffs, intrinsics)
@@ -355,7 +365,7 @@ def main():
             node.publish_occ_grid(full_occ)
 
             odom_waypoint = pixel_waypoint_to_odom(
-                rt_centroid, depths, ransac_coeffs, rc, intrinsics)
+                turn_centroid, depths, ransac_coeffs, rc, intrinsics)
             node.publish_waypoint(odom_waypoint)
             # <<< end of change
 
@@ -383,4 +393,9 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    # get command line arg to decide which turn
+    turn_type = "right"
+    if len(sys.argv) > 1:
+        turn_type = sys.argv[1].lower()
+    
+    main(turn_type=turn_type)
