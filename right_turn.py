@@ -104,7 +104,7 @@ class RightTurn:
 
         self.draw_trapezoid()
 
-        top_middle = (int(0.4 * self.width), 0)
+        top_middle = (int(0.7 * self.width), 0)
         bottom_left = (0, self.height)
         cv2.line(self.final, top_middle, bottom_left, 255, 10)
 
@@ -112,7 +112,7 @@ class RightTurn:
         bottom_middle = (int(0.875*self.width), self.height)
         cv2.line(self.final, right_middle, bottom_middle, 255, 10)
 
-        self.centroid = ((self.width // 8) * 7, 40)
+        self.centroid = ((self.width // 8) * 7, int((self.height // 8) * 2.5))
 
     def state_3(self, best_cnt):
         # state3: the case where we're mid-turn and can see the yellow dashed line
