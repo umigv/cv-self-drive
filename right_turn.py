@@ -21,6 +21,7 @@ class RightTurn:
         self.height = None
 
         self.state_1_done = False
+        self.state_2_done = False
         self.state_3_done = False
 
         self.min_area = 200
@@ -200,12 +201,21 @@ class RightTurn:
             if point[0, 1] < min_y:
                 top_yellow_point = (point[0, 0], point[0, 1])
                 min_y = point[0, 1]
+        
+        white_point = (top_white_point[0] is not None) and (top_white_point[1] is not None)
+        yellow_point = (top_yellow_point[0] is not None) and (top_yellow_point[1] is not None)
+        print(top_white_point)
+        print(top_yellow_point)
 
-        if self.debug:
-          cv2.line(self.final, top_white_point, top_yellow_point, 128, 10)
-
-        avg_x = (top_yellow_point[0] + top_white_point[0]) // 2
-        avg_y = (top_yellow_point[1] + top_white_point[1]) // 2
+        if white_point and yellow_point:
+          avg_x = (top_yellow_point[0] + top_white_point[0]) // 2
+          avg_y = (top_yellow_point[1] + top_white_point[1]) // 2
+          if self.debug:
+            cv2.line(self.final, top_white_point, top_yellow_point, 128, 10)
+        else:
+          avg_x = self.width // 2
+          avg_y = 40
+          self.state_4_done = True
 
         self.centroid = (avg_x, avg_y)
 
@@ -228,10 +238,11 @@ class RightTurn:
                     max_y = cnt[0, 0, 1]
                     best_cnt = cnt
                     
-        if num_yellow_dashed == 0 or (best_cnt is None):
+        if (num_yellow_dashed == 0 or (best_cnt is None)) and not self.state_2_done:
             self.state_2()
             return
         elif not self.state_3_done:
+            self.state_2_done = True
             self.state_3(best_cnt)
         else: # state 4
             best_yellow = None
@@ -241,7 +252,11 @@ class RightTurn:
                 if cv2.contourArea(cnt) > self.min_area and cnt[0, 0, 1] < min_y:
                     best_yellow = cnt
                     min_y = cnt[0, 0, 1]
-            self.state_4(best_yellow)
+
+            if best_yellow is not None:
+              self.state_4(best_yellow)
+            else:
+              self.centroid = (self.width // 2, 40)
 
     def run(self):
         cap = cv2.VideoCapture("data/right_turn_cropped.mp4")
