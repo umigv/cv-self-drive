@@ -135,8 +135,8 @@ class RightTurn:
 
         while y2 > 0 and self.white_mask[y2, x2] != 255:
             y2 -= 1 # bring up to bottom of white line
-        while y2 > 0 and self.white_mask[y2, x2] != 0:
-            y2 -= 1 # bring up to top of white line
+        # while y2 > 0 and self.white_mask[y2, x2] != 0:
+        #     y2 -= 1 # bring up to top of white line
 
         if self.debug:
             cv2.circle(self.final, (x, y), 5, 128, -1)
