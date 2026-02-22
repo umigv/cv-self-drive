@@ -17,8 +17,11 @@ class hsv:
         self.barrel_boxes = None
         self.YOLO_lanes = False
         self.YOLO_barrels = False
-        self.barrel_model =  YOLO("/home/umarv/Documents/CV/cv-self-drive/obstacles.pt")
-        self.lane_model = YOLO("/home/umarv/Documents/CV/cv-self-drive/laneswithcontrast.pt")
+        self.barrel_model = YOLO("data/obstacles.pt")
+        self.lane_model = YOLO("data/laneswithcontrast.pt")
+
+        # self.barrel_model = YOLO("/home/umarv/Documents/CV/cv-self-drive/obstacles.pt")
+        # self.lane_model = YOLO("/home/umarv/Documents/CV/cv-self-drive/laneswithcontrast.pt")
         self.load_hsv_values()
         
         
@@ -180,7 +183,9 @@ class hsv:
             self.hsv_image = cv2.cvtColor(self.image, cv2.COLOR_BGR2HSV)
             mask, dict = self.update_mask()
 
+            cv2.namedWindow("Video", cv2.WINDOW_NORMAL)
             cv2.imshow('Video', frame)
+            cv2.namedWindow("Mask", cv2.WINDOW_NORMAL)
             cv2.imshow('Mask', dict[filter_name])
 
             key = cv2.waitKey(1) & 0xFF

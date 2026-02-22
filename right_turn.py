@@ -28,10 +28,10 @@ class RightTurn:
         self.debug = debug
 
     def draw_trapezoid(self):
-        top_width_start = self.width // 4  # Narrower top
-        top_width_end = self.width - (self.width // 4)
-        bottom_width_start = 0  # Wider base
-        bottom_width_end = self.width - (self.width // 9)
+        top_width_start = self.width // 2.2  # Narrower top
+        top_width_end = self.width - (self.width // 2.2)
+        bottom_width_start = self.width // 3  # Wider base
+        bottom_width_end = self.width - (self.width // 3)
 
         # Define the trapezoid points
         pts = np.array([
@@ -173,6 +173,10 @@ class RightTurn:
                 self.centroid = (self.width // 2, 40)
             self.centroid = point_list[len(point_list) // 2]
 
+            if self.centroid[1] > (self.height // 8) * 7:
+                self.centroid  = (self.width // 2, 40)
+                self.state_3_done = True
+
     def state_4(self, yellow_cnt):
         # search top half of screen for white contours (will normally just one line
         # but loop through each contour to find topmost point in case we get multiple)
@@ -220,7 +224,7 @@ class RightTurn:
             if cv2.contourArea(cnt) > self.min_area:
                 num_yellow_dashed += 1
                 
-                if cnt[0, 0, 1] > max_y and cnt[0, 0, 1] < self.height // 2:
+                if cnt[0, 0, 1] > max_y: # and cnt[0, 0, 1] < self.height // 2:
                     max_y = cnt[0, 0, 1]
                     best_cnt = cnt
                     
@@ -240,8 +244,8 @@ class RightTurn:
             self.state_4(best_yellow)
 
     def run(self):
-        cap = cv2.VideoCapture('data/right_turn1.mp4')
-        self.hsv_obj = hsv('data/right_turn1.mp4')
+        cap = cv2.VideoCapture("data/right_turn_cropped.mp4")
+        self.hsv_obj = hsv("data/right_turn_cropped.mp4")
 
         # "white": {
         #     "h_upper": 179,
@@ -260,6 +264,9 @@ class RightTurn:
         #     "v_lower": 200
         # }
         # backup of values from json
+
+        # self.hsv_obj.tune("white")
+        # self.hsv_obj.tune("yellow")
         
         while cap.isOpened():
             ret, self.image = cap.read()
@@ -306,7 +313,7 @@ class RightTurn:
     # <<< end of change
 
 def main():
-    obj = RightTurn(debug = False)
+    obj = RightTurn(debug = True)
     obj.run()
 
 if __name__ == "__main__":
