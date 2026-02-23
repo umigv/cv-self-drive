@@ -26,6 +26,8 @@ class RightTurn:
 
         self.min_area = 200
 
+        self.look_for_barrels = False
+
         self.debug = debug
 
     def draw_trapezoid(self):
@@ -45,6 +47,7 @@ class RightTurn:
         # Fill the trapezoid with 0 in the mask
         if self.debug:
             print("Trapezoid drawn")
+            
         cv2.fillPoly(self.final, [pts], 0)
 
     def past_stop_line(self):
@@ -60,7 +63,7 @@ class RightTurn:
 
     def update_mask(self):
         #defining the ranges for HSV values
-        self.final, dict = self.hsv_obj.get_mask(self.image)
+        self.final, dict = self.hsv_obj.get_mask(self.image, yolo_barrels=self.look_for_barrels)
 
         # print(dict)
         
@@ -131,7 +134,8 @@ class RightTurn:
                     x = point[0][0]
                     max_y = y
 
-        x2, y2 = max(0, x - 150), y
+        white_line_jump = 150 # can probably be tuned
+        x2, y2 = max(0, x - white_line_jump), y
 
         while y2 > 0 and self.white_mask[y2, x2] != 255:
             y2 -= 1 # bring up to bottom of white line
@@ -178,44 +182,59 @@ class RightTurn:
                 self.centroid  = (self.width // 2, 40)
                 self.state_3_done = True
 
-    def state_4(self, yellow_cnt):
-        # search top half of screen for white contours (will normally just one line
-        # but loop through each contour to find topmost point in case we get multiple)
+    def state_4(self, yellow_cnts):
+        # look for barrel
+        if self.hsv_obj.barrel_boxes is not None:
+            for segment in self.hsv_obj.barrel_boxes:
+                x_min, y_min, x_max, y_max = segment
+                vertices = np.array([
+                    [x_min * self.width, y_min * self.height], #top left
+                    [x_max * self.width, y_min * self.height], #top right
+                    [x_max * self.width, y_max * self.height], #bottom right
+                    [x_min * self.width, y_max * self.height] #bottom left
+                ], dtype=np.int32)
+                
+                if(y_min * self.height > self.height // 2):
+                    # this might be a cone that is close to us so see if its in the middle
+                    midpoint = (x_max * self.width) - (x_min * self.width)
+                    if(midpoint > self.width // 4 and midpoint < (self.width - (self.width//4))):
+                        self.centroid = midpoint
+                        return
 
+        # normal state 4
         min_y = self.height - 1
-        top_white_point = (None, None)
+        top_yellow_point = None
+
+        # look for top yellow point
+        for cnt in yellow_cnts:
+            if cv2.contourArea(cnt) > self.min_area:
+                for point in cnt:
+                    if point[0, 1] < min_y:
+                        top_yellow_point = (point[0, 0], point[0, 1])
+                        min_y = point[0, 1]
+        if top_yellow_point is None:
+            self.centroid  = (self.width // 2, 40)
+            return
+        
+        min_y = self.height - 1
+        top_white_point = None
         white_cnts, _ = cv2.findContours(self.white_mask[:self.height//2, :], cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
+        # look for top white point
         for cnt in white_cnts:
             if cv2.contourArea(cnt) > self.min_area:
                 for point in cnt:
                     if point[0, 1] < min_y:
                         top_white_point = (point[0, 0], point[0, 1])
                         min_y = point[0, 1]
+        if top_white_point is None:
+            self.centroid  = (self.width // 2, 40)
+            return
 
-        # find topmost yellow point in contour
-        min_y = self.height - 1
-        top_yellow_point = (None, None)
-
-        for point in yellow_cnt:
-            if point[0, 1] < min_y:
-                top_yellow_point = (point[0, 0], point[0, 1])
-                min_y = point[0, 1]
-        
-        white_point = (top_white_point[0] is not None) and (top_white_point[1] is not None)
-        yellow_point = (top_yellow_point[0] is not None) and (top_yellow_point[1] is not None)
-        print(top_white_point)
-        print(top_yellow_point)
-
-        if white_point and yellow_point:
-          avg_x = (top_yellow_point[0] + top_white_point[0]) // 2
-          avg_y = (top_yellow_point[1] + top_white_point[1]) // 2
-          if self.debug:
+        avg_x = (top_yellow_point[0] + top_white_point[0]) // 2
+        avg_y = (top_yellow_point[1] + top_white_point[1]) // 2
+        if self.debug:
             cv2.line(self.final, top_white_point, top_yellow_point, 128, 10)
-        else:
-          avg_x = self.width // 2
-          avg_y = 40
-          self.state_4_done = True
 
         self.centroid = (avg_x, avg_y)
 
@@ -230,7 +249,7 @@ class RightTurn:
         max_y = 0
         
         num_yellow_dashed = 0
-        for cnt in contours: # Looping through contours
+        for cnt in contours: # Find lowermost yellow contour
             if cv2.contourArea(cnt) > self.min_area:
                 num_yellow_dashed += 1
                 
@@ -238,25 +257,15 @@ class RightTurn:
                     max_y = cnt[0, 0, 1]
                     best_cnt = cnt
                     
-        if (num_yellow_dashed == 0 or (best_cnt is None)) and not self.state_2_done:
+        if (num_yellow_dashed == 0 or (best_cnt is None)) and not self.state_2_done: # state 2
             self.state_2()
             return
-        elif not self.state_3_done:
+        elif not self.state_3_done: # state 3
             self.state_2_done = True
             self.state_3(best_cnt)
         else: # state 4
-            best_yellow = None
-            min_y = self.height - 1
-            
-            for cnt in contours: # topmost yellow contour
-                if cv2.contourArea(cnt) > self.min_area and cnt[0, 0, 1] < min_y:
-                    best_yellow = cnt
-                    min_y = cnt[0, 0, 1]
-
-            if best_yellow is not None:
-              self.state_4(best_yellow)
-            else:
-              self.centroid = (self.width // 2, 40)
+            self.look_for_barrels = True
+            self.state_4(contours)
 
     def run(self):
         cap = cv2.VideoCapture("data/right_turn_cropped.mp4")
