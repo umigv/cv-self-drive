@@ -17,11 +17,8 @@ class hsv:
         self.barrel_boxes = None
         self.YOLO_lanes = False
         self.YOLO_barrels = False
-        self.barrel_model = YOLO("data/obstacles.pt")
-        self.lane_model = YOLO("data/laneswithcontrast.pt")
-
-        # self.barrel_model = YOLO("/home/umarv/Documents/CV/cv-self-drive/obstacles.pt")
-        # self.lane_model = YOLO("/home/umarv/Documents/CV/cv-self-drive/laneswithcontrast.pt")
+        self.barrel_model = YOLO("/home/umarv/Documents/CV/cv-self-drive/obstacles.pt")
+        self.lane_model = YOLO("/home/umarv/Documents/CV/cv-self-drive/laneswithcontrast.pt")
         self.load_hsv_values()
         
         
