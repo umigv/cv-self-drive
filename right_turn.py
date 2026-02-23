@@ -337,7 +337,7 @@ class RightTurn:
     # <<< end of change
 
 def main():
-    obj = RightTurn(debug = True)
+    obj = RightTurn(debug = False)
     obj.run()
 
 if __name__ == "__main__":
