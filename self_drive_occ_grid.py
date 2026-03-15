@@ -23,7 +23,13 @@ import pyzed.sl as sl
 from signal import signal, SIGINT
 import argparse
 import os
-import cv2
+# import cv2
+sys.path.append(
+    os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                 "cv-depth-segmentation",
+                 "src")
+)
+
 import ransac.plane
 import ransac.occu
 import numpy as np
