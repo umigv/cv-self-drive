@@ -23,7 +23,7 @@ import pyzed.sl as sl
 from signal import signal, SIGINT
 import argparse
 import os
-# import cv2
+import cv2
 sys.path.append(
     os.path.join(os.path.dirname(os.path.abspath(__file__)),
                  "cv-depth-segmentation",
@@ -297,8 +297,8 @@ def main(turn_type="right"):
     intrinsics = ransac.Intrinsics(cx_scaled, cy_scaled, fx_scaled, fy_scaled)
     # <<< end of change
 
-    drive_conf = ransac.GridConfiguration(5000, 5000, 50, thres=5)
-    block_conf = ransac.GridConfiguration(5000, 5000, 50, thres=1)
+    drive_conf = ransac.GridConfiguration(5000, 5000, 50) # , thres=5
+    block_conf = ransac.GridConfiguration(5000, 5000, 50) # , thres=1
 
     # >>> change: single node for both occ grid and waypoint
     node = SelfDriveNode(
@@ -338,40 +338,18 @@ def main(turn_type="right"):
             turn_mask, turn_centroid = turn.run_frame(hsv_identifier, image)
             # <<< end of change
 
-            # >>> change: replace hsv_and_ransac with external_mask_and_ransac
-            # OLD: ransac_output, ransac_coeffs = ransac.plane.hsv_and_ransac(
-            #          image, depths, 60, (1, 16), 0.15)
-            ransac_output, ransac_coeffs = ransac.plane.external_mask_and_ransac(
-                turn_mask, depths)
-            # <<< end of change
-
-            rc = ransac.plane.real_coeffs(ransac_coeffs, intrinsics)
-            rad = ransac.plane.real_angle(rc)
-
-            drive_ppc = ransac.occu.create_point_cloud(
-                ransac_output, depths, skip=3)
-            drive_rpc = ransac.occu.pixel_to_real(drive_ppc, rc, intrinsics)
-            block_ppc = ransac.occu.create_point_cloud(
-                ransac_output != 1, depths, skip=3)
-            block_rpc = ransac.occu.pixel_to_real(block_ppc, rc, intrinsics)
-
-            drive_occ = ransac.occu.occupancy_grid(drive_rpc, drive_conf)
-            block_occ = ransac.occu.occupancy_grid(block_rpc, block_conf)
-            full_occ = ransac.occu.composite(drive_occ, block_occ)
-
-            occ_h, occ_w = full_occ.shape
-
-            # >>> small change here to resolve naming conflict (cam renamed to virt_cam)
-            virt_cam = ransac.VirtualCamera(
-                occ_h - 1, occ_w // 2, math.pi / 2, math.radians(110))
-            full_occ = ransac.occu.create_los_grid(full_occ, [virt_cam])
-            # <<< end of small change
+            # >>> change: Using new efficient ransac library
+            ground_mask, pixel_coeffs = ransac.plane.ground_plane(depths)
+            lane_mask = ransac.plane.merge_masks(ground_mask, turn_mask)
+            real_coeffs = ransac.plane.real_coeffs(pixel_coeffs, intrinsics)
+            rad = ransac.plane.real_angle(real_coeffs)
+            full_occ = ransac.occu.occ_grid(lane_mask, real_coeffs, intrinsics, drive_conf, ransac.CameraPosition(0, 0, 0))
 
             # >>> change: publish occ grid and waypoint from single node
             node.publish_occ_grid(full_occ)
 
             odom_waypoint = pixel_waypoint_to_odom(
-                turn_centroid, depths, ransac_coeffs, rc, intrinsics)
+                turn_centroid, depths, pixel_coeffs, real_coeffs, intrinsics)
             node.publish_waypoint(odom_waypoint)
             # <<< end of change
 
