@@ -4,6 +4,13 @@ import os
 import json
 from ultralytics import YOLO
 
+try:
+    import pyzed.sl as sl
+    ZED_AVAILABLE = True
+except ImportError:
+    ZED_AVAILABLE = False
+
+
 class hsv:
     def __init__(self, video_path):
         self.hsv_image = None
@@ -21,21 +28,17 @@ class hsv:
         self.lane_model = YOLO("/home/umarv/Documents/CV/cv-self-drive/laneswithcontrast.pt")
         self.load_hsv_values()
         
-        
     def load_hsv_values(self):
         if os.path.exists('hsv_values.json'):
             with open('hsv_values.json', 'r') as file:
                 all_hsv_values = json.load(file)
                 self.hsv_filters = all_hsv_values.get(str(self.video_path), {})
         else:
-            # print("Matt put it in the wrong spot")
-            # Initialize with an empty filter map if the JSON file doesn't exist
             self.hsv_filters["white"] = {
                 'h_upper': 29, 'h_lower': 0,
                 's_upper': 51, 's_lower': 0,
                 'v_upper': 255, 'v_lower': 137
             }
-            # print(self.hsv_filters)
 
     def save_hsv_values(self):
         all_hsv_values = {}
@@ -120,7 +123,6 @@ class hsv:
             print("No HSV values file found.")
                 
     def get_barrels_YOLO(self):
-        # Get the driveable area of one frame and return the inverted mask
         results = self.barrel_model.predict(self.image, conf=0.7)[0]
         self.barrel_mask = np.zeros((self.image.shape[0], self.image.shape[1]), dtype=np.uint8)
         if results.boxes is not None:
@@ -139,9 +141,8 @@ class hsv:
         table = np.array([((i / 255.0) ** inv_gamma) * 255 for i in np.arange(0, 256)]).astype("uint8")
         self.image = cv2.LUT(self.image, table)
         
-    def tune(self, filter_name):
+    def tune(self, filter_name, use_zed=False):
         if filter_name not in self.hsv_filters:
-            # Initialize default values for the new filter
             self.hsv_filters[filter_name] = {
                 'h_upper': 179, 'h_lower': 0,
                 's_upper': 255, 's_lower': 0,
@@ -149,10 +150,6 @@ class hsv:
             }
         filter_values = self.hsv_filters[filter_name]
         self.setup = True
-        cap = cv2.VideoCapture(self.video_path)
-        if not cap.isOpened():
-            print(f"Error: Unable to open video file {self.video_path}")
-            return
 
         cv2.namedWindow('control pannel')
         cv2.createTrackbar('H_upper', 'control pannel', filter_values['h_upper'], 179,
@@ -169,30 +166,81 @@ class hsv:
                            lambda v: self.__update_filter(filter_name, 'v_lower', v))
         cv2.createTrackbar('Done Tuning', 'control pannel', 0, 1, self.on_button_click)
 
+        # Handle ZED Initialization
+        if use_zed:
+            if not ZED_AVAILABLE:
+                print("Warning: ZED SDK (pyzed) not installed. Falling back to OpenCV.")
+                use_zed = False
+            else:
+                zed = sl.Camera()
+                init_params = sl.InitParameters()
+                # If they passed an SVO video file instead of a live camera index
+                if isinstance(self.video_path, str) and self.video_path.endswith('.svo'):
+                    init_params.set_from_svo_file(self.video_path)
+                    init_params.svo_real_time_mode = False
+                
+                err = zed.open(init_params)
+                if err != sl.ERROR_CODE.SUCCESS:
+                    print(f"Error opening ZED Camera: {err}")
+                    return
+                
+                print("Applying custom ZED video settings...")
+                zed.set_camera_settings(sl.VIDEO_SETTINGS.BRIGHTNESS, 1)
+                zed.set_camera_settings(sl.VIDEO_SETTINGS.CONTRAST, 3)
+                zed.set_camera_settings(sl.VIDEO_SETTINGS.HUE, 0)
+                zed.set_camera_settings(sl.VIDEO_SETTINGS.SATURATION, 5)
+                zed.set_camera_settings(sl.VIDEO_SETTINGS.SHARPNESS, 5)
+                zed.set_camera_settings(sl.VIDEO_SETTINGS.GAMMA, 1)
+                
+                image_zed = sl.Mat()
+
+        if not use_zed:
+            cap = cv2.VideoCapture(self.video_path)
+            if not cap.isOpened():
+                print(f"Error: Unable to open video file {self.video_path}")
+                return
+
+        # Main Tuning Loop
         while self.setup:
-            ret, frame = cap.read()
-            if not ret:
-                # If the video ends, reset to the beginning
-                cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
-                continue
+            if use_zed:
+                err = zed.grab()
+                if err == sl.ERROR_CODE.SUCCESS:
+                    zed.retrieve_image(image_zed, sl.VIEW.LEFT)
+                    # ZED returns BGRA, so we strip the Alpha channel for OpenCV compatibility
+                    frame = image_zed.get_data()
+                    frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR)
+                elif err == sl.ERROR_CODE.END_OF_SVOFILE_REACHED:
+                    zed.set_svo_position(0)
+                    continue
+                else:
+                    break
+            else:
+                ret, frame = cap.read()
+                if not ret:
+                    cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+                    continue
+
             self.image = frame
             self.adjust_gamma()
             self.hsv_image = cv2.cvtColor(self.image, cv2.COLOR_BGR2HSV)
-            mask, dict = self.update_mask()
+            mask, dict_masks = self.update_mask()
 
             cv2.imshow('Video', frame)
-            cv2.imshow('Mask', dict[filter_name])
+            cv2.imshow('Mask', dict_masks[filter_name])
 
             key = cv2.waitKey(1) & 0xFF
             if key == 27:  # Press 'Esc' to exit the loop
                 break
 
-        cap.release()
+        if use_zed:
+            zed.close()
+        else:
+            cap.release()
+            
         cv2.destroyAllWindows()
         self.save_hsv_values()
 
     def get_lane_lines_YOLO(self):
-        # Get the driveable area of one frame and return the inverted mask
         results = self.lane_model.predict(self.image, conf=0.7)[0]
         laneline_mask = np.zeros((self.image.shape[0], self.image.shape[1]), dtype=np.uint8)
         if(results.masks is not None):
@@ -213,7 +261,7 @@ class hsv:
             mask = cv2.erode(mask, None, iterations=2)
             mask = cv2.dilate(mask, None, iterations=4)
             contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-            min_area = 200 # Adjust based on noise size
+            min_area = 200 
             final = np.zeros_like(mask)
             for cnt in contours:
                 if cv2.contourArea(cnt) > min_area:
@@ -222,7 +270,7 @@ class hsv:
             if filter_name == "white" and self.YOLO_lanes:
                 lane_line_mask = self.get_lane_lines_YOLO()
                 final = cv2.bitwise_or(final, lane_line_mask)
-            # Combine masks
+            
             if combined_mask is None:
                 combined_mask = final
             else:

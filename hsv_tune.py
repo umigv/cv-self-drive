@@ -2,4 +2,4 @@ from hsv import hsv
 
 
 hsv_obj = hsv(1)
-hsv_obj.tune("yellow")
+hsv_obj.tune("white", use_zed=True)
