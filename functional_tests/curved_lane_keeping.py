@@ -214,7 +214,7 @@ class CurvedLanekeeping(FunctionalTest):
         return self.final_mask, self.waypoint
 
 def main():
-    obj = CurvedLanekeeping(debug = True, barrel_mode = "orange")
+    obj = CurvedLanekeeping(debug = False, barrel_mode = "YOLO")
     obj.run()
 
 if __name__ == "__main__":
