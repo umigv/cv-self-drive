@@ -1,9 +1,9 @@
 import cv2
 import numpy as np
 from hsv import hsv
+from functional_test_parent import FunctionalTest
 
-
-class CurvedLanekeeping:
+class CurvedLanekeeping(FunctionalTest):
     # Left and right bounds should be kept symmetric
     def __init__(self, debug: bool = False, barrels: bool = True,
                  barrel_mode: str = "YOLO",
@@ -16,11 +16,11 @@ class CurvedLanekeeping:
         self.white_mask = None
         self.yellow_mask = None
 
-        self.final = None
+        self.final_mask = None
 
         self.hsv_obj = None
 
-        self.centroid = (None, None)
+        self.waypoint = (None, None)
 
         self.width = None
         self.height = None
@@ -36,7 +36,7 @@ class CurvedLanekeeping:
 
     def update_mask(self):
         #defining the ranges for HSV values
-        self.final, dict = self.hsv_obj.get_mask(self.image, yolo_barrels=self.look_for_barrels)
+        self.final_mask, dict = self.hsv_obj.get_mask(self.image, yolo_barrels=self.look_for_barrels)
 
         # print(dict)
         
@@ -45,10 +45,10 @@ class CurvedLanekeeping:
         if self.barrel_mode != "YOLO":
           self.barrel_color_mask = dict["orange"]
 
-        # final_bgr = cv2.cvtColor(self.final, cv2.COLOR_GRAY2BGR)
+        # final_bgr = cv2.cvtColor(self.final_mask, cv2.COLOR_GRAY2BGR)
         # combined = np.hstack((self.image, final_bgr))
         # cv2.namedWindow("Combined Image", cv2.WINDOW_NORMAL)
-        # cv2.imshow("Combined Image", self.final)
+        # cv2.imshow("Combined Image", self.final_mask)
 
     def state_machine(self):
         # looking for barrel
@@ -64,12 +64,12 @@ class CurvedLanekeeping:
 
                 if self.debug:
                     # print(vertices)
-                    cv2.rectangle(self.final, vertices[0], vertices[2], 127, 5)
+                    cv2.rectangle(self.final_mask, vertices[0], vertices[2], 127, 5)
                 
                 if(y_min * self.height > self.height // 2):
                     midpoint = (x_max * self.width) - (x_min * self.width)
                     if(midpoint > self.width // 4 and midpoint < (self.width - (self.width // 4))):
-                        self.centroid = midpoint
+                        self.waypoint = midpoint
                         return
 
         # normal state
@@ -111,19 +111,19 @@ class CurvedLanekeeping:
                         best_right_point = (x, y)
       
         if best_left_point is not None and best_right_point is not None:    
-            self.centroid = (
+            self.waypoint = (
                 (best_left_point[0] + best_right_point[0]) // 2,
                 (best_left_point[1] + best_right_point[1]) // 2
             )
         else: # fallback
-            self.centroid = (
+            self.waypoint = (
                 self.width // 2,
                 self.height // 2
             )
 
         if self.debug:
-            cv2.circle(self.final, best_left_point, 10, 128, -1)
-            cv2.circle(self.final, best_right_point, 10, 128, -1)
+            cv2.circle(self.final_mask, best_left_point, 10, 128, -1)
+            cv2.circle(self.final_mask, best_right_point, 10, 128, -1)
 
     def show_search_boxes(self, color: int) -> None:
         left_min = int(self.left_bounds[0] * self.width)
@@ -135,26 +135,26 @@ class CurvedLanekeeping:
         vert_min = int(self.vertical_bounds[0] * self.height)
         vert_max = int(self.vertical_bounds[1] * self.height)
 
-        cv2.line(self.final, (left_min, vert_min),
+        cv2.line(self.final_mask, (left_min, vert_min),
             (left_min, vert_max),
             color, 10)
-        cv2.line(self.final, (left_max, vert_min),
+        cv2.line(self.final_mask, (left_max, vert_min),
             (left_max, vert_max),
             color, 10)
-        cv2.line(self.final, (left_min, vert_min), 
+        cv2.line(self.final_mask, (left_min, vert_min), 
             (left_max, vert_min), color, 10)
-        cv2.line(self.final, (left_min, vert_max), 
+        cv2.line(self.final_mask, (left_min, vert_max), 
             (left_max, vert_max), color, 10)
       
-        cv2.line(self.final, (right_min, vert_min),
+        cv2.line(self.final_mask, (right_min, vert_min),
             (right_min, vert_max),
             color, 10)
-        cv2.line(self.final, (right_max, vert_min),
+        cv2.line(self.final_mask, (right_max, vert_min),
             (right_max, vert_max),
             color, 10)
-        cv2.line(self.final, (right_min, vert_min), 
+        cv2.line(self.final_mask, (right_min, vert_min), 
             (right_max, vert_min), color, 10)
-        cv2.line(self.final, (right_min, vert_max), 
+        cv2.line(self.final_mask, (right_min, vert_max), 
             (right_max, vert_max), color, 10)
 
     def run(self):
@@ -173,13 +173,13 @@ class CurvedLanekeeping:
                 self.update_mask()
                 self.state_machine()
 
-                if self.debug:
-                    self.show_search_boxes(150)
+                # if self.debug:
+                #     self.show_search_boxes(150)
                     
-                cv2.circle(self.final, self.centroid, 5, 255, -1)
+                cv2.circle(self.final_mask, self.waypoint, 5, 255, -1)
 
                 cv2.namedWindow("Final Mask", cv2.WINDOW_NORMAL)
-                cv2.imshow("Final Mask", self.final)
+                cv2.imshow("Final Mask", self.final_mask)
                 cv2.namedWindow("Yellow Mask", cv2.WINDOW_NORMAL)
                 cv2.imshow("Yellow Mask", self.yellow_mask)
                 cv2.namedWindow("White Mask", cv2.WINDOW_NORMAL)
@@ -208,13 +208,13 @@ class CurvedLanekeeping:
         self.update_mask()
         self.state_machine()
 
-        cv2.circle(self.final, self.centroid, 5, 255, -1)
-        cv2.imshow("Final Mask", self.final)
+        cv2.circle(self.final_mask, self.waypoint, 5, 255, -1)
+        cv2.imshow("Final Mask", self.final_mask)
 
-        return self.final, self.centroid
+        return self.final_mask, self.waypoint
 
 def main():
-    obj = CurvedLanekeeping(debug = False, barrel_mode = "orange")
+    obj = CurvedLanekeeping(debug = True, barrel_mode = "orange")
     obj.run()
 
 if __name__ == "__main__":
