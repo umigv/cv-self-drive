@@ -1,4 +1,4 @@
-CV Self-Drive Documentation
+# CV Self-Drive Documentation
 
 ## ```right_turn.py```
 
@@ -27,7 +27,7 @@ def run_frame(self, hsv_indentifier, frame)
 
 ```FunctionalTest``` is an abstract class meant to give a common interface for running code and storing data in functional tests. To use it, have your class inherit from ```FunctionalTest``` and ensure you are storing data in ```self.final_mask``` and ```self.waypoint```.
 
-### Sample Usage
+### Sample usage:
 ``` python
 from functional_test_parent import FunctionalTest
 
