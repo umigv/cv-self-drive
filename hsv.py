@@ -24,8 +24,8 @@ class hsv:
         self.barrel_boxes = None
         self.YOLO_lanes = False
         self.YOLO_barrels = False
-        self.barrel_model = YOLO("/home/umarv/Documents/CV/cv-self-drive/obstacles.pt")
-        self.lane_model = YOLO("/home/umarv/Documents/CV/cv-self-drive/laneswithcontrast.pt")
+        self.barrel_model = YOLO("./data/obstacles.pt")
+        self.lane_model = YOLO("./data/laneswithcontrast.pt")
         self.barrel_mode = barrel_mode # "YOLO" or "[filter name]"
         self.load_hsv_values()
         
@@ -42,7 +42,7 @@ class hsv:
             }
 
         if "__ZED_SETTINGS__" not in self.hsv_filters:
-            self.hsv_filters["__ZED_SETTINGS___"] = {
+            self.hsv_filters["__ZED_SETTINGS__"] = {
                 "BRIGHTNESS": 1, "CONTRAST": 3,
                 "HUE": 0, "SATURATION": 3,
                 "SHARPNESS": 5, "GAMMA": 1
@@ -220,7 +220,7 @@ class hsv:
         filter_values = self.hsv_filters[filter_name]
         self.setup = True
 
-        cv2.namedWindow('control pannel')
+        cv2.namedWindow('control panel', cv2.WINDOW_NORMAL)
         cv2.createTrackbar('H_upper', 'control panel', filter_values['h_upper'], 179,
                            lambda v: self.__update_filter(filter_name, 'h_upper', v))
         cv2.createTrackbar('H_lower', 'control panel', filter_values['h_lower'], 179,

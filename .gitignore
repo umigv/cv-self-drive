@@ -1,4 +1,8 @@
-env
-.env
-venv
-.venv
+env/
+.env/
+venv/
+.venv/
+*.pt
+*.mp4
+*.mov
+__pycache__/
