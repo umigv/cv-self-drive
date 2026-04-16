@@ -250,13 +250,6 @@ class hsv:
         
         cv2.createTrackbar('Done Tuning', 'control panel', 0, 1, self.on_button_click)
 
-        # zed.set_camera_settings(sl.VIDEO_SETTINGS.BRIGHTNESS, 1)
-        # zed.set_camera_settings(sl.VIDEO_SETTINGS.CONTRAST, 3)
-        # zed.set_camera_settings(sl.VIDEO_SETTINGS.HUE, 0)
-        # zed.set_camera_settings(sl.VIDEO_SETTINGS.SATURATION, 5)
-        # zed.set_camera_settings(sl.VIDEO_SETTINGS.SHARPNESS, 5)
-        # zed.set_camera_settings(sl.VIDEO_SETTINGS.GAMMA, 1)
-
         # Handle ZED Initialization
         if use_zed:
             if not ZED_AVAILABLE:
