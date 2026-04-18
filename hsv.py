@@ -212,6 +212,9 @@ class hsv:
         self.image = cv2.LUT(self.image, table)
         
     def tune(self, filter_name, use_zed=False):
+        if filter_name == "__ZED_SETTINGS__":
+            print("To tune ZED settings, enter any of your filter names.")
+          
         if filter_name not in self.hsv_filters:
             self.hsv_filters[filter_name] = {
                 'h_upper': 179, 'h_lower': 0,
