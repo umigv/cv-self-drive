@@ -177,7 +177,8 @@ class RightTurn:
 
             if len(point_list) == 0:
                 self.centroid = (self.width // 2, 40)
-            self.centroid = point_list[len(point_list) // 2]
+            else:
+              self.centroid = point_list[len(point_list) // 2]
 
             if self.centroid[1] > (self.height // 8) * 7:
                 self.centroid  = (self.width // 2, 40)
