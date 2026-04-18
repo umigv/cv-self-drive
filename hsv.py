@@ -47,6 +47,7 @@ class hsv:
                 "HUE": 0, "SATURATION": 3,
                 "SHARPNESS": 5, "GAMMA": 1
             }
+            print("No __ZED_SETTINGS__ key found, using default values")
 
     def save_hsv_values(self):
         all_hsv_values = {}
@@ -234,18 +235,23 @@ class hsv:
         cv2.createTrackbar('V_lower', 'control panel', filter_values['v_lower'], 255,
                            lambda v: self.__update_filter(filter_name, 'v_lower', v))
         if use_zed:
-            cv2.createTrackbar("BRIGHTNESS", 'control panel', filter_values["BRIGHTNESS"], 8,
-                              lambda v: self.__update_filter(filter_name, "BRIGHTNESS", v))
-            cv2.createTrackbar("CONTRAST", 'control panel', filter_values["CONTRAST"], 8,
-                              lambda v: self.__update_filter(filter_name, "CONTRAST", v))
-            cv2.createTrackbar("HUE", 'control panel', filter_values["HUE"], 11,
-                              lambda v: self.__update_filter(filter_name, "HUE", v))
-            cv2.createTrackbar("SATURATION", 'control panel', filter_values["SATURATION"], 8,
-                              lambda v: self.__update_filter(filter_name, "SATURATION", v))
-            cv2.createTrackbar("SHARPNESS", 'control panel', filter_values["SHARPNESS"], 8,
-                              lambda v: self.__update_filter(filter_name, "SHARPNESS", v))
-            cv2.createTrackbar("GAMMA", 'control panel', filter_values["GAMMA"], 9,
-                              lambda v: self.__update_filter(filter_name, "GAMMA", v))
+            cv2.createTrackbar("BRIGHTNESS", 'control panel', self.hsv_filters["__ZED_SETTINGS__"]["BRIGHTNESS"], 8,
+                              lambda v: self.__update_filter("__ZED_SETTINGS__", "BRIGHTNESS", v))
+            
+            cv2.createTrackbar("CONTRAST", 'control panel', self.hsv_filters["__ZED_SETTINGS__"]["CONTRAST"], 8,
+                              lambda v: self.__update_filter("__ZED_SETTINGS__", "CONTRAST", v))
+            
+            cv2.createTrackbar("HUE", 'control panel', self.hsv_filters["__ZED_SETTINGS__"]["HUE"], 11,
+                              lambda v: self.__update_filter("__ZED_SETTINGS__", "HUE", v))
+            
+            cv2.createTrackbar("SATURATION", 'control panel', self.hsv_filters["__ZED_SETTINGS__"]["SATURATION"], 8,
+                              lambda v: self.__update_filter("__ZED_SETTINGS__", "SATURATION", v))
+            
+            cv2.createTrackbar("SHARPNESS", 'control panel', self.hsv_filters["__ZED_SETTINGS__"]["SHARPNESS"], 8,
+                              lambda v: self.__update_filter("__ZED_SETTINGS__", "SHARPNESS", v))
+            
+            cv2.createTrackbar("GAMMA", 'control panel', self.hsv_filters["__ZED_SETTINGS__"]["GAMMA"], 9,
+                              lambda v: self.__update_filter("__ZED_SETTINGS__", "GAMMA", v))
             cv2.setTrackbarMin("GAMMA", 'control panel', 1)
         
         cv2.createTrackbar('Done Tuning', 'control panel', 0, 1, self.on_button_click)
@@ -253,7 +259,7 @@ class hsv:
         # Handle ZED Initialization
         if use_zed:
             if not ZED_AVAILABLE:
-                print("Warning: ZED SDK (pyzed) not installed. Falling back to OpenCV.")
+                print("Warning: ZED SDK (pyzed) not installed. Falling back to OpenCV. Trackbars will still change ZED settings.")
                 use_zed = False
             else:
                 zed = sl.Camera()
