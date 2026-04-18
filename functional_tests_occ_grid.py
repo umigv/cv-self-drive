@@ -49,6 +49,7 @@ from geometry_msgs.msg import PointStamped, Pose, Quaternion, Point
 
 # Functional tests import
 from pedestrian_lane_change import ReallyGoodStateMachine
+from curved_lane_keeping import CurvedLanekeeping
 
 
 cam = sl.Camera()
@@ -315,6 +316,8 @@ def main(function_type="right_turn"):
         function = LeftTurn(debug=False)
     elif(function_type == "pedlanechange"):
         function = ReallyGoodStateMachine()
+    elif(function_type == "curvedlanekeep"):
+        function = CurvedLanekeeping(debug=False)
     else:
         print(f"Invalid turn type: {function_type}. Must be 'right' or 'left'.")
         exit(1)

@@ -16,7 +16,8 @@ class ReallyGoodStateMachine(FunctionalTest):
         self.cap_1 = cv2.VideoCapture("data/mirrored_9.mp4") 
         self.cap_5 = cv2.VideoCapture("data/20260322_172804.mp4") 
         self.cap_ = cv2.VideoCapture("data/20260322_172726.mp4") 
-        self.cap = cv2.VideoCapture("data/HD2K_SN36466710_18-50-10.mp4") 
+        # self.cap = cv2.VideoCapture("data/HD2K_SN36466710_18-50-10.mp4")
+        self.cap = cv2.VideoCapture("data/right_lane_change.mp4") 
         self.cap__ = cv2.VideoCapture("data/HD2K_SN36466710_18-51-17.mp4") 
         #
         self.y_waypoint = 0
@@ -45,12 +46,14 @@ class ReallyGoodStateMachine(FunctionalTest):
 
         self.entered_sentinel = False
         self.exited_sentinel = False
+        self.initial_frame_read = False
+        self.initial_frame = None
 
     # Determines whether a lane change should be from Left->Right or Right->Left
     # Determines this through count of white pixels 
     # More white pixels on side x means leaving side x to go to lane on other side of the screen
     # ex: (less white on right side : lane change Right->Left)
-    # True means 
+    # True means right to left lane change
     def set_right_to_left(self):
         ret, img = self.cap.read()
         height, width = img.shape[:2]
@@ -341,6 +344,11 @@ class ReallyGoodStateMachine(FunctionalTest):
         img = img[:, int(width/2) : width]
         height, width = img.shape[:2]
 
+        if(not self.initial_frame_read):
+            self.initial_frame = img
+            self.initial_frame_read = True
+            self.right_to_left = self.set_right_to_left()
+
         prev_x = int(width/2)
         self.frame_count += 1
 
@@ -397,7 +405,7 @@ class ReallyGoodStateMachine(FunctionalTest):
                 break
 
 
-
-machine = ReallyGoodStateMachine()
-machine.right_to_left = machine.set_right_to_left()
-machine.run()
+if __name__ == "__main__":
+    machine = ReallyGoodStateMachine()
+    machine.right_to_left = machine.set_right_to_left()
+    machine.run()
