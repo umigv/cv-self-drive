@@ -17,12 +17,12 @@
             "v_lower": 137
         },
         "__ZED_SETTINGS__": {
-            "BRIGHTNESS": 8,
-            "CONTRAST": 3,
-            "HUE": 7,
-            "SATURATION": 8,
-            "SHARPNESS": 8,
-            "GAMMA": 9
+            "BRIGHTNESS": 0,
+            "CONTRAST": 0,
+            "HUE": 0,
+            "SATURATION": 0,
+            "SHARPNESS": 0,
+            "GAMMA": 1
         }
     },
     "1": {
