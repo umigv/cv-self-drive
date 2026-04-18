@@ -63,7 +63,8 @@ class RightTurn:
 
     def update_mask(self):
         #defining the ranges for HSV values
-        self.final, dict = self.hsv_obj.get_mask(self.image, yolo_barrels=self.look_for_barrels and (not self.debug))
+        self.hsv_obj.set_YOLO_barrels(self.look_for_barrels and (not self.debug))
+        self.final, dict = self.hsv_obj.get_mask(self.image)
 
         # print(dict)
         

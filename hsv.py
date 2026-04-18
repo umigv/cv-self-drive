@@ -385,10 +385,14 @@ class hsv:
 
         return combined_mask, masks
         
-    def get_mask(self, frame, yolo_lanes=False, yolo_barrels=False):
-        self.YOLO_lanes = yolo_lanes
-        self.YOLO_barrels = yolo_barrels
+    def get_mask(self, frame):
+        # self.YOLO_lanes = yolo_lanes
+        # self.YOLO_barrels = yolo_barrels
         self.image = frame
         self.adjust_gamma()
         self.hsv_image = cv2.cvtColor(self.image, cv2.COLOR_BGR2HSV)
         return self.update_mask()
+    
+    def set_YOLO_lanes(self, val: bool): self.YOLO_lanes = val
+
+    def set_YOLO_barrels(self, val: bool): self.YOLO_barrels = val
