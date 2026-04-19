@@ -52,26 +52,26 @@ Example:
 }
 ```
 
-## Constructor
+### Constructor
 
 ``` python
 def __init__(self, video_path: str | int, barrel_mode: bool = "YOLO")
 ```
 ```video_path``` is the name of the json key you want to grab your color ranges from. ```barrel_mode``` determines how the barrel detection operates. ```"YOLO"``` uses a YOLO model, and passing in the name of a color range will use that color range instead of YOLO.
 
-## Tuning
+### Tuning
 ``` python
 def tune(self, filter_name: str, use_zed: bool = False) -> None
 ```
 ```filter_name``` is the name of the color range you want to adjust. A window will come up with trackbars along with a display of your source to allow you to tune the exact color range you want to adjust. ```use_zed``` adds the option to tune zed camera parameters.
 
-## Grabbing Masks
+### Grabbing Masks
 ``` python
 def get_mask(self, frame: np.ndarray) -> tuple[np.ndarray, dict[str, np.ndarray]]
 ```
 ```frame``` is the image you want hsv to process, in the form of a numpy ```ndarray```. The function returns a tuple that contains a combined mask of all your color ranges and a dictionary mapping from color range names to their respective masks.
 
-## Example Usage
+### Example Usage
 ``` python
 hsv_obj = hsv("data/right_turn_cropped.mp4")
 
