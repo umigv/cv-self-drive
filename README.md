@@ -18,7 +18,7 @@ Where `<function_type>` is:
 
 ### Setup
 
-Create a file named ```hsv_values.json``` and create an entry with a key that is either a camera index or the filepath of the video you want to pull from. Do this for each souce you want to use. Create entries for each named color range you want to filter, adding boundes for hue, saturation, and value. Optionally, you can add a ```"__ZED_SETTINGS__"``` key if you want to tune a zed camera.
+Create a file named ```hsv_values.json``` and create an entry with a key that is either a camera index or the filepath of the video you want to pull from. Do this for each souce you want to use. Create entries for each named color range you want to filter, adding bounds for hue, saturation, and value. Optionally, you can add a ```"__ZED_SETTINGS__"``` key if you want to tune a zed camera.
 
 Example:
 ``` json
