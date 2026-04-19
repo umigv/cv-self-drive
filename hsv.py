@@ -12,7 +12,7 @@ except ImportError:
 
 
 class hsv:
-    def __init__(self, video_path, barrel_mode = "YOLO"):
+    def __init__(self, video_path: str | int, barrel_mode: str = "YOLO"):
         self.hsv_image = None
         self.hsv_filters = {}  # Map of filter names to HSV bounds
         self.setup = False
