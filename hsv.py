@@ -24,8 +24,8 @@ class hsv:
         self.barrel_boxes = None
         self.YOLO_lanes = False
         self.YOLO_barrels = False
-        self.barrel_model = YOLO("/home/umarv/Documents/CV/cv-self-drive/obstacles.pt")
-        self.lane_model = YOLO("/home/umarv/Documents/CV/cv-self-drive/laneswithcontrast.pt")
+        self.barrel_model = YOLO("./data/obstacles.pt")
+        self.lane_model = YOLO("./data/laneswithcontrast.pt")
         self.barrel_mode = barrel_mode # "YOLO" or "[filter name]"
         self.load_hsv_values()
         
@@ -40,6 +40,14 @@ class hsv:
                 's_upper': 51, 's_lower': 0,
                 'v_upper': 255, 'v_lower': 137
             }
+
+        if "__ZED_SETTINGS__" not in self.hsv_filters:
+            self.hsv_filters["__ZED_SETTINGS__"] = {
+                "BRIGHTNESS": 1, "CONTRAST": 3,
+                "HUE": 0, "SATURATION": 3,
+                "SHARPNESS": 5, "GAMMA": 1
+            }
+            print("No __ZED_SETTINGS__ key found, using default values")
 
     def save_hsv_values(self):
         all_hsv_values = {}
@@ -98,8 +106,9 @@ class hsv:
             
     def __update_filter(self, filter_name, key, value):
         self.hsv_filters[filter_name][key] = value
-        _, filters = self.update_mask()
-        cv2.imshow("Mask", filters[filter_name])
+        if filter_name != "__ZED_SETTINGS__":
+            _, filters = self.update_mask()
+            cv2.imshow("Mask", filters[filter_name])
 
     def clear_filter(self, filter_name):
         if os.path.exists('hsv_values.json'):
@@ -203,6 +212,9 @@ class hsv:
         self.image = cv2.LUT(self.image, table)
         
     def tune(self, filter_name, use_zed=False):
+        if filter_name == "__ZED_SETTINGS__":
+            print("To tune ZED settings, enter any of your filter names.")
+          
         if filter_name not in self.hsv_filters:
             self.hsv_filters[filter_name] = {
                 'h_upper': 179, 'h_lower': 0,
@@ -212,25 +224,45 @@ class hsv:
         filter_values = self.hsv_filters[filter_name]
         self.setup = True
 
-        cv2.namedWindow('control pannel')
-        cv2.createTrackbar('H_upper', 'control pannel', filter_values['h_upper'], 179,
+        cv2.namedWindow('control panel', cv2.WINDOW_NORMAL)
+        cv2.createTrackbar('H_upper', 'control panel', filter_values['h_upper'], 179,
                            lambda v: self.__update_filter(filter_name, 'h_upper', v))
-        cv2.createTrackbar('H_lower', 'control pannel', filter_values['h_lower'], 179,
+        cv2.createTrackbar('H_lower', 'control panel', filter_values['h_lower'], 179,
                            lambda v: self.__update_filter(filter_name, 'h_lower', v))
-        cv2.createTrackbar('S_upper', 'control pannel', filter_values['s_upper'], 255,
+        cv2.createTrackbar('S_upper', 'control panel', filter_values['s_upper'], 255,
                            lambda v: self.__update_filter(filter_name, 's_upper', v))
-        cv2.createTrackbar('S_lower', 'control pannel', filter_values['s_lower'], 255,
+        cv2.createTrackbar('S_lower', 'control panel', filter_values['s_lower'], 255,
                            lambda v: self.__update_filter(filter_name, 's_lower', v))
-        cv2.createTrackbar('V_upper', 'control pannel', filter_values['v_upper'], 255,
+        cv2.createTrackbar('V_upper', 'control panel', filter_values['v_upper'], 255,
                            lambda v: self.__update_filter(filter_name, 'v_upper', v))
-        cv2.createTrackbar('V_lower', 'control pannel', filter_values['v_lower'], 255,
+        cv2.createTrackbar('V_lower', 'control panel', filter_values['v_lower'], 255,
                            lambda v: self.__update_filter(filter_name, 'v_lower', v))
-        cv2.createTrackbar('Done Tuning', 'control pannel', 0, 1, self.on_button_click)
+        if use_zed:
+            cv2.createTrackbar("BRIGHTNESS", 'control panel', self.hsv_filters["__ZED_SETTINGS__"]["BRIGHTNESS"], 8,
+                              lambda v: self.__update_filter("__ZED_SETTINGS__", "BRIGHTNESS", v))
+            
+            cv2.createTrackbar("CONTRAST", 'control panel', self.hsv_filters["__ZED_SETTINGS__"]["CONTRAST"], 8,
+                              lambda v: self.__update_filter("__ZED_SETTINGS__", "CONTRAST", v))
+            
+            cv2.createTrackbar("HUE", 'control panel', self.hsv_filters["__ZED_SETTINGS__"]["HUE"], 11,
+                              lambda v: self.__update_filter("__ZED_SETTINGS__", "HUE", v))
+            
+            cv2.createTrackbar("SATURATION", 'control panel', self.hsv_filters["__ZED_SETTINGS__"]["SATURATION"], 8,
+                              lambda v: self.__update_filter("__ZED_SETTINGS__", "SATURATION", v))
+            
+            cv2.createTrackbar("SHARPNESS", 'control panel', self.hsv_filters["__ZED_SETTINGS__"]["SHARPNESS"], 8,
+                              lambda v: self.__update_filter("__ZED_SETTINGS__", "SHARPNESS", v))
+            
+            cv2.createTrackbar("GAMMA", 'control panel', self.hsv_filters["__ZED_SETTINGS__"]["GAMMA"], 9,
+                              lambda v: self.__update_filter("__ZED_SETTINGS__", "GAMMA", v))
+            cv2.setTrackbarMin("GAMMA", 'control panel', 1)
+        
+        cv2.createTrackbar('Done Tuning', 'control panel', 0, 1, self.on_button_click)
 
         # Handle ZED Initialization
         if use_zed:
             if not ZED_AVAILABLE:
-                print("Warning: ZED SDK (pyzed) not installed. Falling back to OpenCV.")
+                print("Warning: ZED SDK (pyzed) not installed. Falling back to OpenCV. Trackbars will still change ZED settings.")
                 use_zed = False
             else:
                 zed = sl.Camera()
@@ -245,13 +277,15 @@ class hsv:
                     print(f"Error opening ZED Camera: {err}")
                     return
                 
+                zed_params = self.hsv_filters["__ZED_SETTINGS__"]
+                
                 print("Applying custom ZED video settings...")
-                zed.set_camera_settings(sl.VIDEO_SETTINGS.BRIGHTNESS, 1)
-                zed.set_camera_settings(sl.VIDEO_SETTINGS.CONTRAST, 3)
-                zed.set_camera_settings(sl.VIDEO_SETTINGS.HUE, 0)
-                zed.set_camera_settings(sl.VIDEO_SETTINGS.SATURATION, 5)
-                zed.set_camera_settings(sl.VIDEO_SETTINGS.SHARPNESS, 5)
-                zed.set_camera_settings(sl.VIDEO_SETTINGS.GAMMA, 1)
+                zed.set_camera_settings(sl.VIDEO_SETTINGS.BRIGHTNESS, zed_params["BRIGHTNESS"])
+                zed.set_camera_settings(sl.VIDEO_SETTINGS.CONTRAST, zed_params["CONTRAST"])
+                zed.set_camera_settings(sl.VIDEO_SETTINGS.HUE, zed_params["HUE"])
+                zed.set_camera_settings(sl.VIDEO_SETTINGS.SATURATION, zed_params["SATURATION"])
+                zed.set_camera_settings(sl.VIDEO_SETTINGS.SHARPNESS, zed_params["SHARPNESS"])
+                zed.set_camera_settings(sl.VIDEO_SETTINGS.GAMMA, zed_params["GAMMA"])
                 
                 image_zed = sl.Mat()
 
@@ -264,6 +298,12 @@ class hsv:
         # Main Tuning Loop
         while self.setup:
             if use_zed:
+                zed.set_camera_settings(sl.VIDEO_SETTINGS.BRIGHTNESS, zed_params["BRIGHTNESS"])
+                zed.set_camera_settings(sl.VIDEO_SETTINGS.CONTRAST, zed_params["CONTRAST"])
+                zed.set_camera_settings(sl.VIDEO_SETTINGS.HUE, zed_params["HUE"])
+                zed.set_camera_settings(sl.VIDEO_SETTINGS.SATURATION, zed_params["SATURATION"])
+                zed.set_camera_settings(sl.VIDEO_SETTINGS.SHARPNESS, zed_params["SHARPNESS"])
+                zed.set_camera_settings(sl.VIDEO_SETTINGS.GAMMA, zed_params["GAMMA"])
                 err = zed.grab()
                 if err == sl.ERROR_CODE.SUCCESS:
                     zed.retrieve_image(image_zed, sl.VIEW.LEFT)
@@ -316,6 +356,9 @@ class hsv:
         masks = {}
 
         for filter_name, bounds in self.hsv_filters.items():
+            if filter_name == "__ZED_SETTINGS__":
+                continue
+
             lower_bound = np.array([bounds["h_lower"], bounds['s_lower'], bounds['v_lower']])
             upper_bound = np.array([bounds['h_upper'], bounds['s_upper'], bounds['v_upper']])
             mask = cv2.inRange(self.hsv_image, lower_bound, upper_bound)
@@ -345,10 +388,18 @@ class hsv:
 
         return combined_mask, masks
         
-    def get_mask(self, frame, yolo_lanes=False, yolo_barrels=False):
-        self.YOLO_lanes = yolo_lanes
-        self.YOLO_barrels = yolo_barrels
+    def get_mask(self, frame):
+        # self.YOLO_lanes = yolo_lanes
+        # self.YOLO_barrels = yolo_barrels
         self.image = frame
         self.adjust_gamma()
         self.hsv_image = cv2.cvtColor(self.image, cv2.COLOR_BGR2HSV)
         return self.update_mask()
+    
+    def set_YOLO_lanes(self, val: bool): self.YOLO_lanes = val
+
+    def set_YOLO_barrels(self, val: bool): self.YOLO_barrels = val
+
+    def __call__(self, frame: np.ndarray) -> np.ndarray: # MaskMethod functor
+        combined, dict = self.get_mask(frame)
+        return dict["white"]

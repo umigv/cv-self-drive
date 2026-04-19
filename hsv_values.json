@@ -15,6 +15,14 @@
             "s_lower": 0,
             "v_upper": 255,
             "v_lower": 137
+        },
+        "__ZED_SETTINGS__": {
+            "BRIGHTNESS": 0,
+            "CONTRAST": 0,
+            "HUE": 0,
+            "SATURATION": 0,
+            "SHARPNESS": 0,
+            "GAMMA": 1
         }
     },
     "1": {

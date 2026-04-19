@@ -63,7 +63,8 @@ class RightTurn:
 
     def update_mask(self):
         #defining the ranges for HSV values
-        self.final, dict = self.hsv_obj.get_mask(self.image, yolo_barrels=self.look_for_barrels and (not self.debug))
+        self.hsv_obj.set_YOLO_barrels(self.look_for_barrels and (not self.debug))
+        self.final, dict = self.hsv_obj.get_mask(self.image)
 
         # print(dict)
         
@@ -176,7 +177,8 @@ class RightTurn:
 
             if len(point_list) == 0:
                 self.centroid = (self.width // 2, 40)
-            self.centroid = point_list[len(point_list) // 2]
+            else:
+              self.centroid = point_list[len(point_list) // 2]
 
             if self.centroid[1] > (self.height // 8) * 7:
                 self.centroid  = (self.width // 2, 40)
