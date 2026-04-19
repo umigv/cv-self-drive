@@ -211,7 +211,7 @@ class hsv:
         table = np.array([((i / 255.0) ** inv_gamma) * 255 for i in np.arange(0, 256)]).astype("uint8")
         self.image = cv2.LUT(self.image, table)
         
-    def tune(self, filter_name, use_zed=False):
+    def tune(self, filter_name: str, use_zed: bool = False) -> None:
         if filter_name == "__ZED_SETTINGS__":
             print("To tune ZED settings, enter any of your filter names.")
           
@@ -388,7 +388,7 @@ class hsv:
 
         return combined_mask, masks
         
-    def get_mask(self, frame):
+    def get_mask(self, frame: np.ndarray) -> tuple[np.ndarray, dict[str, np.ndarray]]:
         # self.YOLO_lanes = yolo_lanes
         # self.YOLO_barrels = yolo_barrels
         self.image = frame
@@ -396,9 +396,11 @@ class hsv:
         self.hsv_image = cv2.cvtColor(self.image, cv2.COLOR_BGR2HSV)
         return self.update_mask()
     
-    def set_YOLO_lanes(self, val: bool): self.YOLO_lanes = val
+    def set_YOLO_lanes(self, val: bool) -> None:
+        self.YOLO_lanes = val
 
-    def set_YOLO_barrels(self, val: bool): self.YOLO_barrels = val
+    def set_YOLO_barrels(self, val: bool) -> None:
+        self.YOLO_barrels = val
 
     def __call__(self, frame: np.ndarray) -> np.ndarray: # MaskMethod functor
         combined, dict = self.get_mask(frame)
