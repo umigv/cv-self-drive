@@ -48,8 +48,8 @@ from geometry_msgs.msg import PointStamped, Pose, Quaternion, Point
 # <<< end of change
 
 # Functional tests import
-from pedestrian_lane_change import ReallyGoodStateMachine
-from curved_lane_keeping import CurvedLanekeeping
+from functional_tests.pedestrian_lane_changing import ReallyGoodStateMachine
+from functional_tests.curved_lane_keeping import CurvedLanekeeping
 
 
 cam = sl.Camera()
@@ -313,7 +313,7 @@ def main(function_type="right_turn"):
     if(function_type == "right"):
         function = RightTurn(debug=False)
     elif(function_type == "left"):
-        function = LeftTurn(debug=False)
+        function = LeftTurn(debug=True)
     elif(function_type == "pedlanechange"):
         function = ReallyGoodStateMachine()
     elif(function_type == "curvedlanekeep"):
@@ -340,6 +340,7 @@ def main(function_type="right_turn"):
                 depth_m, sl.MEASURE.DEPTH, sl.MEM.CPU, low_res)
 
             image = image_mat.get_data()
+            image = cv2.cvtColor(image, cv2.COLOR_BGRA2BGR)
             depths = ransac.plane.clean_depths(depth_m.get_data())
 
             # >>> change: run RightTurn on the frame to get final mask + pixel waypoint

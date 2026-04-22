@@ -40,8 +40,14 @@ class LeftTurn:
     
     def past_stop_line(self):
         cnts, _ = cv2.findContours(self.yellow_mask[:, :self.width//2], cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        
-        if len(cnts) == 0:
+        # print(f"Number of contours found in yellow mask: {len(cnts)}")
+        post_filter_cnts = []
+        for cnt in cnts:
+            area = cv2.contourArea(cnt)
+            if area > 200:  # Adjust this threshold based on your needs
+                post_filter_cnts.append(cnt)
+        print(f"Number of contours after filtering by area: {len(post_filter_cnts)}")
+        if len(post_filter_cnts) == 0:
             return True
         else:
             return False
@@ -88,6 +94,8 @@ class LeftTurn:
         return 0 <= x < self.width and 0 <= y < self.height
     
     def is_local_0s(self, mask, x, y):
+        if(not self.in_bounds(x, y) or not self.in_bounds(x+1, y) or not self.in_bounds(x, y+1) or not self.in_bounds(x+1, y+1)):
+            return False
         return (
         mask[y,   x]   == 0 and
         mask[y,   x+1] == 0 and

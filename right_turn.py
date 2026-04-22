@@ -136,6 +136,8 @@ class RightTurn:
                     max_y = y
 
         white_line_jump = 150 # can probably be tuned
+        if x is None: x = 0
+        if y is None: y = 0
         x2, y2 = max(0, x - white_line_jump), y
 
         while y2 > 0 and self.white_mask[y2, x2] != 255:
@@ -188,7 +190,7 @@ class RightTurn:
         # look for barrel
         if self.hsv_obj.barrel_boxes is not None:
             for segment in self.hsv_obj.barrel_boxes:
-                x_min, y_min, x_max, y_max = segment
+                x_min, y_min, x_max, y_max = segment.cpu().numpy().tolist()
                 vertices = np.array([
                     [x_min * self.width, y_min * self.height], #top left
                     [x_max * self.width, y_min * self.height], #top right
