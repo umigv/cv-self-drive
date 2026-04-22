@@ -34,6 +34,7 @@ import ransac.plane
 import ransac.occu
 import numpy as np
 import math
+import json
 
 # >>> ros2 change
 import rclpy
@@ -329,6 +330,29 @@ def main(function_type="right_turn"):
 
     image_mat = sl.Mat()
     depth_m = sl.Mat()
+
+    with open("hsv_values.json", "r") as file:
+        all_json_keys = json.load(file)
+        json_dict = all_json_keys.get(str(hsv_identifier), {})
+
+        if "__ZED_SETTINGS__" in json_dict:
+            zed_settings = json_dict["__ZED_SETTINGS__"]
+        else:
+            zed_settings = {
+                "BRIGHTNESS": 5,
+                "CONTRAST": 5,
+                "HUE": 5,
+                "SATURATION": 5,
+                "SHARPNESS": 5,
+                "GAMMA": 6
+            }
+
+    cam.set_camera_settings(sl.VIDEO_SETTINGS.BRIGHTNESS, zed_settings["BRIGHTNESS"])
+    cam.set_camera_settings(sl.VIDEO_SETTINGS.CONTRAST, zed_settings["CONTRAST"])
+    cam.set_camera_settings(sl.VIDEO_SETTINGS.HUE, zed_settings["HUE"])
+    cam.set_camera_settings(sl.VIDEO_SETTINGS.SATURATION, zed_settings["SATURATION"])
+    cam.set_camera_settings(sl.VIDEO_SETTINGS.SHARPNESS, zed_settings["SHARPNESS"])
+    cam.set_camera_settings(sl.VIDEO_SETTINGS.GAMMA, zed_settings["GAMMA"])
 
     key = 0
     while key != 113:  # for 'q' key
