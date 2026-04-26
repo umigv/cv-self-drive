@@ -24,6 +24,7 @@ import pyzed.sl as sl
 from signal import signal, SIGINT
 import argparse
 import os
+import time
 import cv2
 sys.path.append(
     os.path.join(os.path.dirname(os.path.abspath(__file__)),
@@ -339,6 +340,7 @@ def main(function_type="right_turn"):
         if "__ZED_SETTINGS__" in json_dict:
             zed_settings = json_dict["__ZED_SETTINGS__"]
         else:
+            print("No ZED settings found in JSON, using defaults.")
             zed_settings = {
                 "BRIGHTNESS": 5,
                 "CONTRAST": 5,
@@ -356,6 +358,7 @@ def main(function_type="right_turn"):
     cam.set_camera_settings(sl.VIDEO_SETTINGS.GAMMA, zed_settings["GAMMA"])
     last_publish = None
     key = 0
+    start = time.time()
     while key != 113:  # for 'q' key
         err = cam.grab(runtime)
         if err <= sl.ERROR_CODE.SUCCESS:  # good to go
@@ -368,9 +371,14 @@ def main(function_type="right_turn"):
             image = cv2.cvtColor(image, cv2.COLOR_BGRA2BGR)
             depths = ransac.plane.clean_depths(depth_m.get_data())
 
+            if time.time() - start < 5:
+                print("Warming up the camera...")
+                continue
+
             # >>> change: run RightTurn on the frame to get final mask + pixel waypoint
-            turn_mask, turn_centroid = function.run_frame(hsv_identifier, image)
+            turn_mask, turn_centroid = function.run_frame(hsv_identifier, image) # hsv_identifier, 
             # <<< end of change
+            print(f"done, centroid: {turn_centroid}")  
 
             # >>> change: Using new efficient ransac library
             ground_mask, pixel_coeffs = ransac.plane.ground_plane(depths)
@@ -382,9 +390,11 @@ def main(function_type="right_turn"):
             # >>> change: publish occ grid and waypoint from single node
             node.publish_occ_grid(full_occ)
             now = node.get_clock().now()
-            if last_publish is None or (now - last_publish).nanoseconds >= 2.0 * 1e9:                
+            if last_publish is None or (now - last_publish).nanoseconds >= 2.0 * 1e9:     
+                # print(f"Last publish {last_publish}, now {now}")           
                 odom_waypoint = pixel_waypoint_to_odom(
                     turn_centroid, depths, pixel_coeffs, real_coeffs, intrinsics)
+                print(f"Publishing waypoint at odom coords: {odom_waypoint}")
                 node.publish_waypoint(odom_waypoint)
                 last_publish = now
             # <<< end of change

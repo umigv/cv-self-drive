@@ -39,30 +39,44 @@ class LeftTurn:
         return self.diff_x, self.diff_y
     
     def past_stop_line(self):
+        min_area = 50
         cnts, _ = cv2.findContours(self.yellow_mask[:, :self.width//2], cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         # print(f"Number of contours found in yellow mask: {len(cnts)}")
-        post_filter_cnts = []
-        for cnt in cnts:
-            area = cv2.contourArea(cnt)
-            if area > 200:  # Adjust this threshold based on your needs
-                post_filter_cnts.append(cnt)
-        print(f"Number of contours after filtering by area: {len(post_filter_cnts)}")
-        if len(post_filter_cnts) == 0:
+        # post_filter_cnts = []
+        # for cnt in cnts:
+        #     area = cv2.contourArea(cnt)
+        #     if area > min_area:  # Adjust this threshold based on your needs
+        #         post_filter_cnts.append(cnt)
+        # print(f"Number of contours after filtering by area, min area is {min_area}: {len(post_filter_cnts)}")
+        if len(cnts) == 0:
             return True
         else:
             return False
             
             
     def draw_trapazoid(self):
-        top_width_start = self.width // 4  # Narrower top
-        top_width_end = self.width - (self.width // 4)
-        bottom_width_start = 0  # Wider base
-        bottom_width_end = self.width - (self.width // 9)
+        # top_width_start = self.width // 4  # Narrower top
+        # top_width_end = self.width - (self.width // 4)
+        # bottom_width_start = 0  # Wider base
+        # bottom_width_end = self.width - (self.width // 9)
+
+        # # Define the trapezoid points
+        # pts = np.array([
+        #     [top_width_start, 400],  # Top-left
+        #     [top_width_end, 400],    # Top-right
+        #     [bottom_width_end, self.height],      # Bottom-right
+        #     [bottom_width_start, self.height]     # Bottom-left
+        # ], dtype=np.int32)
+
+        top_width_start = self.width // 6  # Narrower top
+        top_width_end = self.width - (self.width // 6)
+        bottom_width_start = self.width // 5  # Wider base
+        bottom_width_end = self.width - (self.width // 5)
 
         # Define the trapezoid points
         pts = np.array([
-            [top_width_start, 400],  # Top-left
-            [top_width_end, 400],    # Top-right
+            [top_width_start, 200],               # Top-left
+            [top_width_end, 200],                 # Top-right
             [bottom_width_end, self.height],      # Bottom-right
             [bottom_width_start, self.height]     # Bottom-left
         ], dtype=np.int32)
@@ -82,7 +96,7 @@ class LeftTurn:
         self.last_diff_y = self.state_machine()
         self.find_center_of_lane()
         
-        cv2.circle(self.final, self.centroid, 10, 255, -1)
+        # cv2.circle(self.final, self.centroid, 10, 255, -1)
         cv2.imshow("mask", self.final)
         # cv2.imshow("mask", self.yellow_mask)
         final_bgr = cv2.cvtColor(self.final, cv2.COLOR_GRAY2BGR)
@@ -150,7 +164,7 @@ class LeftTurn:
             return
         else:
             self.draw_trapazoid()
-            self.centroid = (self.width//2, 40)
+            self.centroid = (self.width//2, 100)
             # Block out the stop line with the trapazoid
             # set waypoint to directly in front of the robot
         
@@ -165,11 +179,11 @@ class LeftTurn:
         # stopping line but have yet to see the yellow
         # Also revert to this state after state 1 and if in state 2 and no yellow
         self.draw_trapazoid()
-        point1 = (0, int(0.25*self.height))
-        point2 = (int(0.125*self.width), self.height)
-        cv2.line(self.final, (int(0.6 * self.width), 0), (self.width, self.height), 255, 10) #right line
-        cv2.line(self.final, point1, point2, 255, 10) #left line
-        self.centroid = (self.width // 8, 40)
+        # point1 = (0, int(0.25*self.height))
+        # point2 = (int(0.125*self.width), self.height)
+        # cv2.line(self.final, (int(0.8 * self.width), 0), (self.width, self.height), 255, 10) #right line
+        # cv2.line(self.final, point1, point2, 255, 10) #left line
+        self.centroid = (self.width // 2.5, 100)
         
         
      # If we see yellow dashed, align with turn lane (and check for cone)    
@@ -248,7 +262,7 @@ class LeftTurn:
                 # Exit condition in testing
                 if self.testing and self.diff_x >= 0:
                     self.in_state_4 = True
-                    self.centroid = (self.width//2, 40)
+                    self.centroid = (self.width//2, 100)
                     return
 
                 self.diff_x -= 20 #Applying this so that the slope is a little more accurate
@@ -307,13 +321,13 @@ class LeftTurn:
                     x -= self.diff_x #* 2, run
                     y -= self.diff_y #* 2, rise
                     point_list.append((x,y))
-                    cv2.circle(self.final, (x, y), 5, 255, -1)
+                    # cv2.circle(self.final, (x, y), 5, 255, -1)
                     # reduce the diff_x and diff_y each iteration so x and y move less and less
                     # self.diff_x = max(int(self.diff_x * 0.9), min_diff_x)
                     # self.diff_y = max(int(self.diff_y * 0.9), min_diff_y)
                     
                 if len(point_list) == 0:
-                    self.centroid = (self.width//2, 40)
+                    self.centroid = (self.width//2, 100)
                 else:
                     self.centroid = point_list[len(point_list)//2]
                 self.yellow_found = True
@@ -379,7 +393,7 @@ class LeftTurn:
         self.update_mask()
         self.state_machine()
 
-        cv2.circle(self.final, self.centroid, 5, 255, -1)
+        # cv2.circle(self.final, self.centroid, 5, 255, -1)
         cv2.imshow("Final Mask", self.final)
 
         return self.final, self.centroid

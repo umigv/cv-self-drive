@@ -33,8 +33,8 @@ class ReallyGoodStateMachine(FunctionalTest):
         self.right_to_left = True
 
         # Values for HSV
-        self.white_lower_bound = np.array([0, 0, 180])
-        self.white_upper_bound = np.array([179, 103, 255])
+        self.white_lower_bound = np.array([0, 0, 54])
+        self.white_upper_bound = np.array([179, 37, 255])
 
         # State constants
         self.state_1 = 1 # Person detection -> waits until a person takes up enough of the screen, then: state 2
@@ -55,15 +55,18 @@ class ReallyGoodStateMachine(FunctionalTest):
     # ex: (less white on right side : lane change Right->Left)
     # True means right to left lane change
     def set_right_to_left(self):
-        ret, img = self.cap.read()
+        # ret, img = self.cap.read()
+        img = self.initial_frame
+        print("right to left lane change - img.shape: ", img.shape)
         height, width = img.shape[:2]
-        img = img[:, int(width/2) : width]
-        height, width = img.shape[:2]
-        img = img[:int(height * 1/4), :]
+        # img = img[:, int(width/2) : width ]
+        # height, width = img.shape[:2]
+        # img = img[:int(height * 1/4), :]
         hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-        lower_yellow = np.array([23,96,231])
-        upper_yellow = np.array([179,255,255])
+        lower_yellow = np.array([28, 221, 63])
+        upper_yellow = np.array([68, 255, 255])
         yellow_mask = cv2.inRange(hsv, lower_yellow, upper_yellow)
+        cv2.imshow("yellow mask", yellow_mask)
         
         middle = int(width/2)
         left = yellow_mask[:, :middle]
@@ -156,7 +159,12 @@ class ReallyGoodStateMachine(FunctionalTest):
                         # we convert to numpy and resize to match original image
                         l = cls.cpu().numpy()
                         m1 = cv2.resize(mask.cpu().numpy(), (img.shape[1], img.shape[0]))
-                        m = cv2.bitwise_or(m, m1)
+                        # print(m.shape)
+                        # print(m1.shape)
+                        # print(type(m))
+                        # print(type(m1))
+                        # m = cv2.bitwise_or(m, m1)
+                        m = m + m1
                         label = cv2.bitwise_or(label, l)
                         
                 return m, label
@@ -171,8 +179,9 @@ class ReallyGoodStateMachine(FunctionalTest):
         full_mask3, person_label = self.get_mask(self.person_model, img, mode="person")
         
         
-        full_mask = cv2.bitwise_or(full_mask1, full_mask2)
-        full_mask = cv2.bitwise_or(full_mask, full_mask3)
+        # full_mask = cv2.bitwise_or(full_mask1, full_mask2)
+        # full_mask = cv2.bitwise_or(full_mask, full_mask3)
+        full_mask = full_mask1 + full_mask2 + full_mask3
 
         # lines - 1, barrel - 2, person - 3 (for visualization purposes)
         # full_label = lines_label + barrel_label*2 + person_label*3
@@ -242,7 +251,7 @@ class ReallyGoodStateMachine(FunctionalTest):
                     size_person = (px2-px1)/width
                     cv2.rectangle(img, (px1, py1), (px2, py2), (0, 255, 0), 2)
                     cv2.waitKey(1)    
-                    if size_person > 0.12:
+                    if size_person > 0.1: #0.12 was the initial value
                         print("person within range")
                         return True, (py2 + range), px1, mask
                     else:
@@ -340,9 +349,10 @@ class ReallyGoodStateMachine(FunctionalTest):
             
 
     def run_frame(self, img):
+        print("runframe image shape: ", img.shape)
         height, width = img.shape[:2]
-        img = img[:, int(width/2) : width]
-        height, width = img.shape[:2]
+        # img = img[:, int(width/2) : width]
+        # height, width = img.shape[:2]
 
         if(not self.initial_frame_read):
             self.initial_frame = img
