@@ -2,7 +2,7 @@ env/
 .env/
 venv/
 .venv/
-hsv_env
+hsv_env/
 base_env/
 *.pt
 *.mp4
