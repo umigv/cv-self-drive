@@ -30,6 +30,8 @@ class RightTurn:
 
         self.debug = debug
 
+        self.current_state = None
+
     def draw_trapezoid(self):
         top_width_start = self.width // 6  # Narrower top
         top_width_end = self.width - (self.width // 6)
@@ -86,6 +88,7 @@ class RightTurn:
         if self.debug:
             print("state 1")
         print('state 1')
+        self.current_state = 1
 
         status = self.past_stop_line()
         self.draw_trapezoid()
@@ -104,6 +107,7 @@ class RightTurn:
         if self.debug:
             print("state 2")
         print("state 2")
+        self.current_state = 2
 
         # induce a constant right turn with waypoint in top corner
         # This is for the point where we have crossed the 
@@ -127,6 +131,7 @@ class RightTurn:
         if self.debug:
             print("state 3")
         print("state 3")
+        self.current_state = 3
 
         max_y = 0
         x, y = None, None
@@ -191,6 +196,7 @@ class RightTurn:
                 self.state_3_done = True
 
     def state_4(self, yellow_cnts):
+        self.current_state = 4
         # look for barrel
         if self.hsv_obj.barrel_boxes is not None:
             for segment in self.hsv_obj.barrel_boxes:
