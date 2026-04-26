@@ -18,6 +18,7 @@
 #
 ########################################################################
 
+from platform import node
 import sys
 import pyzed.sl as sl
 from signal import signal, SIGINT
@@ -79,7 +80,7 @@ class SelfDriveNode(Node):
         super().__init__('self_drive_node')
 
         # --- occupancy grid publisher ---
-        self.occ_pub = self.create_publisher(OccupancyGrid, 'occ_grid/self_drive', 10)
+        self.occ_pub = self.create_publisher(OccupancyGrid, 'occupancy_grid/raw', 10)
 
         self.gw_mm = gw_mm
         self.gh_mm = gh_mm
@@ -93,7 +94,7 @@ class SelfDriveNode(Node):
         self.ros_height = gw_mm // cw_mm
 
         # --- waypoint publisher ---
-        self.wp_pub = self.create_publisher(PointStamped, 'waypoint/self_drive', 10)
+        self.wp_pub = self.create_publisher(PointStamped, '/goal', 10)
 
     def publish_occ_grid(self, grid_np):
         # ---- coordinate transform to REP 103 ----
@@ -353,7 +354,7 @@ def main(function_type="right_turn"):
     cam.set_camera_settings(sl.VIDEO_SETTINGS.SATURATION, zed_settings["SATURATION"])
     cam.set_camera_settings(sl.VIDEO_SETTINGS.SHARPNESS, zed_settings["SHARPNESS"])
     cam.set_camera_settings(sl.VIDEO_SETTINGS.GAMMA, zed_settings["GAMMA"])
-
+    last_publish = None
     key = 0
     while key != 113:  # for 'q' key
         err = cam.grab(runtime)
@@ -380,10 +381,12 @@ def main(function_type="right_turn"):
 
             # >>> change: publish occ grid and waypoint from single node
             node.publish_occ_grid(full_occ)
-
-            odom_waypoint = pixel_waypoint_to_odom(
-                turn_centroid, depths, pixel_coeffs, real_coeffs, intrinsics)
-            node.publish_waypoint(odom_waypoint)
+            now = node.get_clock().now()
+            if last_publish is None or (now - last_publish).nanoseconds >= 2.0 * 1e9:                
+                odom_waypoint = pixel_waypoint_to_odom(
+                    turn_centroid, depths, pixel_coeffs, real_coeffs, intrinsics)
+                node.publish_waypoint(odom_waypoint)
+                last_publish = now
             # <<< end of change
 
             full_occ_vis = cv2.cvtColor(full_occ, cv2.COLOR_GRAY2BGR)

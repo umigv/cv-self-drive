@@ -27,11 +27,11 @@
     },
     "1": {
         "yellow": {
-            "h_upper": 107,
-            "h_lower": 0,
+            "h_upper": 68,
+            "h_lower": 28,
             "s_upper": 255,
-            "s_lower": 201,
-            "v_upper": 255,
+            "s_lower": 226,
+            "v_upper": 249,
             "v_lower": 0
         },
         "white": {
@@ -41,6 +41,14 @@
             "s_lower": 0,
             "v_upper": 255,
             "v_lower": 82
+        },
+        "__ZED_SETTINGS__": {
+            "BRIGHTNESS": 3,
+            "CONTRAST": 2,
+            "HUE": 7,
+            "SATURATION": 3,
+            "SHARPNESS": 3,
+            "GAMMA": 6
         }
     }
 }

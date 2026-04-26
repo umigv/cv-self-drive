@@ -31,15 +31,15 @@ class RightTurn:
         self.debug = debug
 
     def draw_trapezoid(self):
-        top_width_start = self.width // 2.2  # Narrower top
-        top_width_end = self.width - (self.width // 2.2)
-        bottom_width_start = self.width // 3  # Wider base
-        bottom_width_end = self.width - (self.width // 3)
+        top_width_start = self.width // 6  # Narrower top
+        top_width_end = self.width - (self.width // 6)
+        bottom_width_start = self.width // 5  # Wider base
+        bottom_width_end = self.width - (self.width // 5)
 
         # Define the trapezoid points
         pts = np.array([
-            [top_width_start, 400],               # Top-left
-            [top_width_end, 400],                 # Top-right
+            [top_width_start, 200],               # Top-left
+            [top_width_end, 200],                 # Top-right
             [bottom_width_end, self.height],      # Bottom-right
             [bottom_width_start, self.height]     # Bottom-left
         ], dtype=np.int32)
@@ -49,6 +49,7 @@ class RightTurn:
             print("Trapezoid drawn")
             
         cv2.fillPoly(self.final, [pts], 0)
+        cv2.bitwise_or(self.final, self.yellow_mask, self.final) # add yellow back in
 
     def past_stop_line(self):
         cnts, _ = cv2.findContours(self.yellow_mask[:, :self.width//2], cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -84,6 +85,7 @@ class RightTurn:
         # This is a will be for the initial straightaway before we cross the stopping line
         if self.debug:
             print("state 1")
+        print('state 1')
 
         status = self.past_stop_line()
         self.draw_trapezoid()
@@ -101,6 +103,7 @@ class RightTurn:
         # start right movement
         if self.debug:
             print("state 2")
+        print("state 2")
 
         # induce a constant right turn with waypoint in top corner
         # This is for the point where we have crossed the 
@@ -123,6 +126,7 @@ class RightTurn:
         # state3: the case where we're mid-turn and can see the yellow dashed line
         if self.debug:
             print("state 3")
+        print("state 3")
 
         max_y = 0
         x, y = None, None
