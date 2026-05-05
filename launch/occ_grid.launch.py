@@ -9,7 +9,8 @@ def generate_launch_description():
             name="self_drive_node",
             output="screen",
             parameters=[
-                {"function_type": "right"}
+                {"function_type": "right",
+                  "hsv_json_key": "1"}
             ]
         )
     ])
