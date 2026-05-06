@@ -1,7 +1,7 @@
 import math
 import cv2
 import numpy as np
-from hsv import hsv
+from cv_self_drive.hsv import hsv
 
 # Left turn algorithm updated from testing at comp, !!NOT TESTED!!
 

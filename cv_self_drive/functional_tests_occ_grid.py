@@ -18,10 +18,10 @@ from rclpy.node import Node
 from nav_msgs.msg import OccupancyGrid, MapMetaData
 from geometry_msgs.msg import PointStamped, Pose, Quaternion, Point
 
-from right_turn import RightTurn
-from left_turn import LeftTurn
-from functional_tests.pedestrian_lane_changing import ReallyGoodStateMachine
-from functional_tests.curved_lane_keeping import CurvedLanekeeping
+from cv_self_drive.functional_tests.right_turn import RightTurn
+from cv_self_drive.functional_tests.left_turn import LeftTurn
+from cv_self_drive.functional_tests.pedestrian_lane_changing import ReallyGoodStateMachine
+from cv_self_drive.functional_tests.curved_lane_keeping import CurvedLanekeeping
 
 def print_params(calibration_params: sl.CalibrationParameters):
     # LEFT CAMERA intrinsics
@@ -186,7 +186,7 @@ class SelfDriveNode(Node):
         self.image_mat = sl.Mat()
         self.depth_m = sl.Mat()
 
-        with open("hsv_values.json", "r") as file:
+        with open("cv_self_drive/hsv_values.json", "r") as file:
             all_json_keys = json.load(file)
             json_dict = all_json_keys.get(self.hsv_json_key, {})
 

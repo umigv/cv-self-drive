@@ -1,4 +1,4 @@
-from hsv import hsv
+from cv_self_drive.hsv import hsv
 
 
 hsv_obj = hsv(1)

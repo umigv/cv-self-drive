@@ -1,4 +1,4 @@
-from functional_test_parent import FunctionalTest
+from cv_self_drive.functional_tests.functional_test_parent import FunctionalTest
 
 class ObstructedPedestrianDetection(FunctionalTest):
     def __init__(self):

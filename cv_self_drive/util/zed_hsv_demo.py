@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-from hsv import hsv
+from cv_self_drive.hsv import hsv
 import os
 import json
 import pyzed.sl as sl

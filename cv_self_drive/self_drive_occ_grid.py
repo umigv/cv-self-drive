@@ -42,8 +42,8 @@ from nav_msgs.msg import OccupancyGrid, MapMetaData
 # <<< ros2 end of change
 
 # >>> change: import RightTurn and message types for waypoint publishing
-from right_turn import RightTurn
-from left_turn import LeftTurn
+from functional_tests.right_turn import RightTurn
+from functional_tests.left_turn import LeftTurn
 from geometry_msgs.msg import PointStamped, Pose, Quaternion, Point
 # <<< end of change
 

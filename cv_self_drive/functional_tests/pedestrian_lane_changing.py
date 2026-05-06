@@ -1,6 +1,6 @@
 import numpy as np
 import cv2
-from functional_tests.functional_test_parent import FunctionalTest
+from cv_self_drive.functional_tests.functional_test_parent import FunctionalTest
 from ultralytics import YOLO
 
 class ReallyGoodStateMachine(FunctionalTest):
