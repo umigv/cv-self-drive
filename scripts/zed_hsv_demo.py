@@ -77,5 +77,5 @@ class ZEDDemo():
             
 
 if __name__ == "__main__":
-    zed_demo = ZEDDemo("hsv_values.json", 0)
+    zed_demo = ZEDDemo("cv_self_drive/hsv_values.json", 0)
     zed_demo.run()
