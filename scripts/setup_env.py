@@ -29,3 +29,7 @@ def setup_venv(name: str, reqs: str):
         print(f"Warning: {reqs} not found. Skipping installation")
 
     print(f"{name} is ready!\n")
+
+if __name__ == "__main__":
+    setup_venv(ENV1, REQ1)
+    setup_venv(ENV2, REQ2)
