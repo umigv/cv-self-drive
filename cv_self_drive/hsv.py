@@ -13,6 +13,8 @@ except ImportError:
 
 class hsv:
     def __init__(self, video_path: str | int, barrel_mode: str = "YOLO"):
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+
         self.hsv_image = None
         self.hsv_filters = {}  # Map of filter names to HSV bounds
         self.setup = False
@@ -24,14 +26,16 @@ class hsv:
         self.barrel_boxes = None
         self.YOLO_lanes = False
         self.YOLO_barrels = False
-        self.barrel_model = YOLO("./data/obstacles.pt")
-        self.lane_model = YOLO("./data/laneswithcontrast.pt")
+        self.barrel_model = YOLO(str(os.path.join(base_dir, "../data/obstacles.pt")))
+        self.lane_model = YOLO(str(os.path.join(base_dir, "../data/laneswithcontrast.pt")))
         self.barrel_mode = barrel_mode # "YOLO" or "[filter name]"
         self.load_hsv_values()
         
     def load_hsv_values(self):
-        if os.path.exists('hsv_values.json'):
-            with open('hsv_values.json', 'r') as file:
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+
+        if os.path.exists(os.path.join(base_dir, "hsv_values.json")):
+            with open(str(os.path.join(base_dir, "hsv_values.json")), 'r') as file:
                 all_hsv_values = json.load(file)
                 self.hsv_filters = all_hsv_values.get(str(self.video_path), {})
         else:
@@ -50,12 +54,14 @@ class hsv:
             print("No __ZED_SETTINGS__ key found, using default values")
 
     def save_hsv_values(self):
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+
         all_hsv_values = {}
-        if os.path.exists('hsv_values.json'):
-            with open('hsv_values.json', 'r') as file:
+        if os.path.exists(os.path.join(base_dir, "hsv_values.json")):
+            with open(str(os.path.join(base_dir, "hsv_values.json")), 'r') as file:
                 all_hsv_values = json.load(file)
         all_hsv_values[str(self.video_path)] = self.hsv_filters
-        with open('hsv_values.json', 'w') as file:
+        with open(os.path.join(base_dir, "hsv_values.json"), 'w') as file:
             json.dump(all_hsv_values, file, indent=4)
 
     def h_upper_callback(self, value):
@@ -111,8 +117,10 @@ class hsv:
             cv2.imshow("Mask", filters[filter_name])
 
     def clear_filter(self, filter_name):
-        if os.path.exists('hsv_values.json'):
-            with open('hsv_values.json', 'r') as file:
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+
+        if os.path.exists(os.path.join(base_dir, "hsv_values.json")):
+            with open(str(os.path.join(base_dir, "hsv_values.json")), 'r') as file:
                 all_hsv_values = json.load(file)
 
             if self.video_path in all_hsv_values:
@@ -122,7 +130,7 @@ class hsv:
                     if not all_hsv_values[self.video_path]:
                         del all_hsv_values[self.video_path]
 
-                    with open('hsv_values.json', 'w') as file:
+                    with open(str(os.path.join(base_dir, "hsv_values.json")), 'w') as file:
                         json.dump(all_hsv_values, file, indent=4)
                     print(f"Filter '{filter_name}' cleared for video '{self.video_path}'.")
                 else:

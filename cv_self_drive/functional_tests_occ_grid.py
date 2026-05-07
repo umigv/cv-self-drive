@@ -186,7 +186,9 @@ class SelfDriveNode(Node):
         self.image_mat = sl.Mat()
         self.depth_m = sl.Mat()
 
-        with open("cv_self_drive/hsv_values.json", "r") as file:
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+
+        with open(str(os.path.join(base_dir, "hsv_values.json")), "r") as file:
             all_json_keys = json.load(file)
             json_dict = all_json_keys.get(self.hsv_json_key, {})
 

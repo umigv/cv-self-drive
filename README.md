@@ -1,6 +1,6 @@
 # cv-self-drive
 
-Run `python self_drive_occ_grid.py <turn_type>` to run the corresponding turn code.
+<!-- Run `python self_drive_occ_grid.py <turn_type>` to run the corresponding turn code.
 Where `<turn_type>` is either "left" or "right".
 
 Run `python functional_tests_occ_grid.py <function_type>` to run the corresponding functional test.
@@ -8,9 +8,21 @@ Where `<function_type>` is:
 * `right` for right turn
 * `left` for left turn
 * `pedlanechange` for pedestrian lane changing
-* `curvedlanekeep` for curved lane keeping
+* `curvedlanekeep` for curved lane keeping -->
 
 `cv-depth-segmentation` has been added as a submodule. To pull updates from the submodule, run `git submodule update --init --recursive`.
+
+# Launching ```self_drive_node```
+
+From ```~/ros2ws```, run ```colcon build --packages-up-to cv_self_drive``` to build the node. Run ```ros 2 launch cv_self_drive func_tests_occ_grid.launch.py``` to start up the node.
+
+The ```"function_type"``` parameter is:
+* ```right``` for right turn
+* ```left``` for left turn
+* ```pedlanechange``` for pedestrian lane changing
+* ```curvedlanekeep``` for curved lane keeping
+
+The ```"hsv_json_key"``` parameter is the key to use to grab values from ```hsv_values.json```.
 
 # Documentation
 

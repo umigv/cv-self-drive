@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 from hsv import hsv
 from cv_self_drive.functional_tests.functional_test_parent import FunctionalTest
+import os
 
 class CurvedLanekeeping(FunctionalTest):
     # Left and right bounds should be kept symmetric
@@ -158,8 +159,10 @@ class CurvedLanekeeping(FunctionalTest):
             (right_max, vert_max), color, 10)
 
     def run(self):
-        cap = cv2.VideoCapture("data/left_curved_road.MOV")
-        self.hsv_obj = hsv("data/left_curved_road.MOV", barrel_mode = self.barrel_mode)
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+
+        cap = cv2.VideoCapture(str(os.path.join(base_dir, "../data/left_curved_road.MOV")))
+        self.hsv_obj = hsv(str(os.path.join(base_dir, "../data/left_curved_road.MOV")), barrel_mode = self.barrel_mode)
 
         # self.hsv_obj.tune("white")
         # self.hsv_obj.tune("yellow")

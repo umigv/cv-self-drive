@@ -1,4 +1,5 @@
 from cv_self_drive.functional_tests.functional_test_parent import FunctionalTest
+import os
 
 class ObstructedPedestrianDetection(FunctionalTest):
     def __init__(self):
@@ -73,8 +74,10 @@ class ObstructedPedestrianDetection(FunctionalTest):
         self.final_mask = mask
 
     def main(self):
-        cap = cv2.VideoCapture("data/obstructed_pedestrian.mp4")
-        self.hsv_obj = hsv("data/obstructed_pedestrian.mp4")
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+
+        cap = cv2.VideoCapture(str(os.path.join(base_dir, "../data/obstructed_pedestrian.mp4")))
+        self.hsv_obj = hsv(str(os.path.join(base_dir, "../data/obstructed_pedestrian.mp4")))
 
         while cap.isOpened():
             ret, self.image = cap.read()

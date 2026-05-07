@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 from cv_self_drive.hsv import hsv
-
+import os
 
 class RightTurn:
     def __init__(self, debug = False):
@@ -282,8 +282,10 @@ class RightTurn:
             self.state_4(contours)
 
     def run(self):
-        cap = cv2.VideoCapture("data/right_turn_cropped.mp4")
-        self.hsv_obj = hsv("data/right_turn_cropped.mp4")
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+
+        cap = cv2.VideoCapture(str(base_dir, "../data/right_turn_cropped.mp4"))
+        self.hsv_obj = hsv(str(base_dir, "../data/right_turn_cropped.mp4"))
 
         # "white": {
         #     "h_upper": 179,

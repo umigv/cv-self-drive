@@ -2,23 +2,26 @@ import numpy as np
 import cv2
 from cv_self_drive.functional_tests.functional_test_parent import FunctionalTest
 from ultralytics import YOLO
+import os
 
 class ReallyGoodStateMachine(FunctionalTest):
     def __init__(self):
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+
         # All models are from ARV DropBox
-        self.person_model = YOLO('./data/yolov8n.pt')
-        self.lines_model = YOLO('./data/best_yolov11_lane_lines.pt')
-        self.barrel_model = YOLO('./data/obstacles.pt')
+        self.person_model = YOLO(str(os.path.join(base_dir, "../data/yolov8n.pt")))
+        self.lines_model = YOLO(str(os.path.join(base_dir, "../data/best_yolov11_lane_lines.pt")))
+        self.barrel_model = YOLO(str(os.path.join(base_dir, "../data/obstacles.pt")))
 
         # these two captures are 1 : from the google drive #9, 
         # and the other is the mirrored version of the same video
-        self.cap_ = cv2.VideoCapture("data/9 function test pedestrian detection lane change & barrel stop.MP4") 
-        self.cap_1 = cv2.VideoCapture("data/mirrored_9.mp4") 
-        self.cap_5 = cv2.VideoCapture("data/20260322_172804.mp4") 
-        self.cap_ = cv2.VideoCapture("data/20260322_172726.mp4") 
+        self.cap_ = cv2.VideoCapture(str(os.path.join(base_dir, "../data/9 function test pedestrian detection lane change & barrel stop.MP4"))) 
+        self.cap_1 = cv2.VideoCapture(str(os.path.join(base_dir, "../data/mirrored_9.mp4"))) 
+        self.cap_5 = cv2.VideoCapture(str(os.path.join(base_dir, "../data/20260322_172804.mp4"))) 
+        self.cap_ = cv2.VideoCapture(str(os.path.join(base_dir, "../data/20260322_172726.mp4"))) 
         # self.cap = cv2.VideoCapture("data/HD2K_SN36466710_18-50-10.mp4")
-        self.cap = cv2.VideoCapture("data/right_lane_change.mp4") 
-        self.cap__ = cv2.VideoCapture("data/HD2K_SN36466710_18-51-17.mp4") 
+        self.cap = cv2.VideoCapture(str(os.path.join(base_dir, "../data/right_lane_change.mp4"))) 
+        self.cap__ = cv2.VideoCapture(str(os.path.join(base_dir, "../data/HD2K_SN36466710_18-51-17.mp4"))) 
         #
         self.y_waypoint = 0
         self.x_waypoint = 0
