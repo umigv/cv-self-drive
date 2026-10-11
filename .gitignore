@@ -2,3 +2,6 @@ env
 .env
 venv
 .venv
+/my_venv/*
+/my_venv
+/testing_utils/data/*

@@ -1,7 +1,7 @@
 from functional_test_parent import FunctionalTest
 
 class ObstructedPedestrianDetection(FunctionalTest):
-    def __init__(self):
+    def __init__(self, videopath=0):
         super().__init__()
         self.image = None
         self.height = 0
@@ -11,6 +11,7 @@ class ObstructedPedestrianDetection(FunctionalTest):
         self.state = 1  # Start in lane keeping state
         self.white_mask = None
         self.yellow_mask = None
+        self.videopath = videopath
 
     def detect_pedestrian(self):
         results = self.pedestrian_model(self.image)
@@ -73,8 +74,10 @@ class ObstructedPedestrianDetection(FunctionalTest):
         self.final_mask = mask
 
     def main(self):
-        cap = cv2.VideoCapture("data/obstructed_pedestrian.mp4")
-        self.hsv_obj = hsv("data/obstructed_pedestrian.mp4")
+        # cap = cv2.VideoCapture("data/obstructed_pedestrian.mp4")
+        cap = cv2.VideoCapture(self.videopath)
+        # self.hsv_obj = hsv("data/obstructed_pedestrian.mp4")
+        self.hsv_obj = hsv(self.videopath)
 
         while cap.isOpened():
             ret, self.image = cap.read()

@@ -3,21 +3,26 @@ import cv2
 from functional_test_parent import FunctionalTest
 from ultralytics import YOLO
 
-class ReallyGoodStateMachine(FunctionalTest):
-    def __init__(self):
+class LaneChangeStateMachine(FunctionalTest):
+    def __init__(self, videopath=0): # default video path 
         # All models are from ARV DropBox
-        self.person_model = YOLO('./data/yolov8n.pt')
-        self.lines_model = YOLO('./data/best_yolov11_lane_lines.pt')
-        self.barrel_model = YOLO('./data/obstacles.pt')
+        self.person_model = YOLO('../data/yolov8n.pt')
+        self.lines_model = YOLO('../data/best_yolov11_lane_lines.pt')
+        self.barrel_model = YOLO('../data/obstacles.pt')
+        # self.person_model = YOLO('./testing_utils/data/yolov8n.pt')
+        # self.lines_model = YOLO('./testing_utils/data/best_yolov11_lane_lines.pt')
+        # self.barrel_model = YOLO('./testing_utils/data/obstacles.pt')
 
         # these two captures are 1 : from the google drive #9, 
-        # and the other is the mirrored version of the same video
-        self.cap_ = cv2.VideoCapture("data/9 function test pedestrian detection lane change & barrel stop.MP4") 
-        self.cap_1 = cv2.VideoCapture("data/mirrored_9.mp4") 
-        self.cap_5 = cv2.VideoCapture("data/20260322_172804.mp4") 
-        self.cap_ = cv2.VideoCapture("data/20260322_172726.mp4") 
-        self.cap = cv2.VideoCapture("data/HD2K_SN36466710_18-50-10.mp4") 
-        self.cap__ = cv2.VideoCapture("data/HD2K_SN36466710_18-51-17.mp4") 
+        # and the other is the mirrored version of the same videokza 
+        # self.cap_ = cv2.VideoCapture("data/9 function test pedestrian detection lane change & barrel stop.MP4") 
+        # self.cap = cv2.VideoCapture("data/mirrored_9.mp4")
+        # self.cap_5 = cv2.VideoCapture("data/20260322_172804.mp4") 
+        # self.cap_ = cv2.VideoCapture("data/20260322_172726.mp4") 
+        # self.cap3 = cv2.VideoCapture("data/HD2K_SN36466710_18-50-10.mp4") 
+        # self.cap = cv2.VideoCapture("../testing_utils/data/HD2K_SN36466710_18-51-17.mp4") 
+        self.videopath = (videopath)
+        self.cap = cv2.VideoCapture(self.videopath)
         #
         self.y_waypoint = 0
         self.x_waypoint = 0
@@ -161,19 +166,13 @@ class ReallyGoodStateMachine(FunctionalTest):
 
     #Changes Lanes
     def change_lanes(self, img, y_in, prev_x):
-        
     
         full_mask1, lines_label = self.get_mask(self.lines_model, img, mode="lines")
         full_mask2, barrel_label = self.get_mask(self.barrel_model, img, mode="barrel")
-        full_mask3, person_label = self.get_mask(self.person_model, img, mode="person")
-        
+        full_mask3, person_label = self.get_mask(self.person_model, img, mode="person") 
         
         full_mask = cv2.bitwise_or(full_mask1, full_mask2)
         full_mask = cv2.bitwise_or(full_mask, full_mask3)
-
-        # lines - 1, barrel - 2, person - 3 (for visualization purposes)
-        # full_label = lines_label + barrel_label*2 + person_label*3
-        # print(full_label)
         
         full_img = np.zeros(img.shape[:2], dtype=np.uint8)
         full_img[full_mask > 0.5] = 255 
@@ -239,7 +238,7 @@ class ReallyGoodStateMachine(FunctionalTest):
                     size_person = (px2-px1)/width
                     cv2.rectangle(img, (px1, py1), (px2, py2), (0, 255, 0), 2)
                     cv2.waitKey(1)    
-                    if size_person > 0.12:
+                    if size_person > 0.05:
                         print("person within range")
                         return True, (py2 + range), px1, mask
                     else:
@@ -397,7 +396,7 @@ class ReallyGoodStateMachine(FunctionalTest):
                 break
 
 
-
-machine = ReallyGoodStateMachine()
-machine.right_to_left = machine.set_right_to_left()
-machine.run()
+if __name__ == "__main__":
+    machine = LaneChangeStateMachine()
+    machine.right_to_left = machine.set_right_to_left()
+    machine.run()
