@@ -5,38 +5,32 @@ from curved_lane_keeping import CurvedLanekeeping
 
 # ===================================================
 # Specify Mode for which test you would like to run: 
-# mode = "pedestrian-lane-change"
-mode = "obstructed-pedestrian"
+mode = "pedestrian-lane-change"
+# mode = "obstructed-pedestrian"
 # mode = "curved-lane"
 # mode = "tire-detection"
 
 # ===================================================
 # Specify what the test path is (what video you are using to test)
-# if nothing it will try to use webcam / cam @ index 0
-
+# if nothing it will try to use webcam / cam @ index 0  
 pedestrian_lane_change_test_path = "../data/HD2K_SN36466710_18-50-10.mp4" 
-# obstructed_pedestrian_test_path = "../data"
-# curved_lane_test = "../data"
+obstructed_pedestrian_test_path = "../data"
+curved_lane_test_path = "../data"
 functional_test_path = "" 
-
-
+#
 # ===================================================
-
-
-
 
 if(mode ==  "pedestrian-lane-change"):
     pedestrian_lane_change_test = LaneChangeStateMachine(pedestrian_lane_change_test_path) # Change test path depending on the test that is being run
     pedestrian_lane_change_test.set_right_to_left()
     pedestrian_lane_change_test.run()
 
-if(mode == "curved-lane"):
-    curved_lane_test = CurvedLanekeeping()
+elif(mode == "curved-lane"):
+    curved_lane_test_path = CurvedLanekeeping(curved_lane_test_path)
 
-    
-if(mode == "obstructed-pedestrian"):
-    obstructed_pedestrian_test = ObstructedPedestrianDetection()\
+elif(mode == "obstructed-pedestrian"):
+    obstructed_pedestrian_test = ObstructedPedestrianDetection(obstructed_pedestrian_test_path)
 
-if(mode == "tire-detection"):
+elif(mode == "tire-detection"):
     # tire_detection_test = 
     x = 0
