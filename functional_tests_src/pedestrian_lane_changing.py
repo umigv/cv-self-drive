@@ -1,6 +1,6 @@
 import numpy as np
 import cv2
-from functional_test_parent import FunctionalTest
+from functional_tests.functional_test_parent import FunctionalTest
 from ultralytics import YOLO
 
 class LaneChangeStateMachine(FunctionalTest):
@@ -37,8 +37,8 @@ class LaneChangeStateMachine(FunctionalTest):
         self.right_to_left = True
 
         # Values for HSV
-        self.white_lower_bound = np.array([0, 0, 180])
-        self.white_upper_bound = np.array([179, 103, 255])
+        self.white_lower_bound = np.array([0, 0, 54])
+        self.white_upper_bound = np.array([179, 37, 255])
 
         # State constants
         self.state_1 = 1 # Person detection -> waits until a person takes up enough of the screen, then: state 2
@@ -50,22 +50,27 @@ class LaneChangeStateMachine(FunctionalTest):
 
         self.entered_sentinel = False
         self.exited_sentinel = False
+        self.initial_frame_read = False
+        self.initial_frame = None
 
     # Determines whether a lane change should be from Left->Right or Right->Left
     # Determines this through count of white pixels 
     # More white pixels on side x means leaving side x to go to lane on other side of the screen
     # ex: (less white on right side : lane change Right->Left)
-    # True means 
+    # True means right to left lane change
     def set_right_to_left(self):
-        ret, img = self.cap.read()
+        # ret, img = self.cap.read()
+        img = self.initial_frame
+        print("right to left lane change - img.shape: ", img.shape)
         height, width = img.shape[:2]
-        img = img[:, int(width/2) : width]
-        height, width = img.shape[:2]
-        img = img[:int(height * 1/4), :]
+        # img = img[:, int(width/2) : width ]
+        # height, width = img.shape[:2]
+        # img = img[:int(height * 1/4), :]
         hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-        lower_yellow = np.array([23,96,231])
-        upper_yellow = np.array([179,255,255])
+        lower_yellow = np.array([28, 221, 63])
+        upper_yellow = np.array([68, 255, 255])
         yellow_mask = cv2.inRange(hsv, lower_yellow, upper_yellow)
+        cv2.imshow("yellow mask", yellow_mask)
         
         middle = int(width/2)
         left = yellow_mask[:, :middle]
@@ -158,7 +163,12 @@ class LaneChangeStateMachine(FunctionalTest):
                         # we convert to numpy and resize to match original image
                         l = cls.cpu().numpy()
                         m1 = cv2.resize(mask.cpu().numpy(), (img.shape[1], img.shape[0]))
-                        m = cv2.bitwise_or(m, m1)
+                        # print(m.shape)
+                        # print(m1.shape)
+                        # print(type(m))
+                        # print(type(m1))
+                        # m = cv2.bitwise_or(m, m1)
+                        m = m + m1
                         label = cv2.bitwise_or(label, l)
                         
                 return m, label
@@ -336,9 +346,15 @@ class LaneChangeStateMachine(FunctionalTest):
             
 
     def run_frame(self, img):
+        print("runframe image shape: ", img.shape)
         height, width = img.shape[:2]
-        img = img[:, int(width/2) : width]
-        height, width = img.shape[:2]
+        # img = img[:, int(width/2) : width]
+        # height, width = img.shape[:2]
+
+        if(not self.initial_frame_read):
+            self.initial_frame = img
+            self.initial_frame_read = True
+            self.right_to_left = self.set_right_to_left()
 
         prev_x = int(width/2)
         self.frame_count += 1

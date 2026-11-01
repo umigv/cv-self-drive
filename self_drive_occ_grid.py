@@ -74,7 +74,7 @@ class SelfDriveNode(Node):
         super().__init__('self_drive_node')
 
         # --- occupancy grid publisher ---
-        self.occ_pub = self.create_publisher(OccupancyGrid, 'occ_grid/self_drive', 10)
+        self.occ_pub = self.create_publisher(OccupancyGrid, 'occupancy_grid/raw', 10)
 
         self.gw_mm = gw_mm
         self.gh_mm = gh_mm
@@ -88,7 +88,7 @@ class SelfDriveNode(Node):
         self.ros_height = gw_mm // cw_mm
 
         # --- waypoint publisher ---
-        self.wp_pub = self.create_publisher(PointStamped, 'waypoint/self_drive', 10)
+        self.wp_pub = self.create_publisher(PointStamped, '/goal', 10)
 
     def publish_occ_grid(self, grid_np):
         # ---- coordinate transform to REP 103 ----

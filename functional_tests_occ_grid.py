@@ -18,11 +18,13 @@
 #
 ########################################################################
 
+from platform import node
 import sys
 import pyzed.sl as sl
 from signal import signal, SIGINT
 import argparse
 import os
+import time
 import cv2
 sys.path.append(
     os.path.join(os.path.dirname(os.path.abspath(__file__)),
@@ -34,6 +36,7 @@ import ransac.plane
 import ransac.occu
 import numpy as np
 import math
+import json
 
 # >>> ros2 change
 import rclpy
@@ -46,6 +49,10 @@ from right_turn import RightTurn
 from left_turn import LeftTurn
 from geometry_msgs.msg import PointStamped, Pose, Quaternion, Point
 # <<< end of change
+
+# Functional tests import
+from functional_tests.pedestrian_lane_changing import ReallyGoodStateMachine
+from functional_tests.curved_lane_keeping import CurvedLanekeeping
 
 
 cam = sl.Camera()
@@ -74,7 +81,7 @@ class SelfDriveNode(Node):
         super().__init__('self_drive_node')
 
         # --- occupancy grid publisher ---
-        self.occ_pub = self.create_publisher(OccupancyGrid, 'occ_grid/self_drive', 10)
+        self.occ_pub = self.create_publisher(OccupancyGrid, 'occupancy_grid/raw', 10)
 
         self.gw_mm = gw_mm
         self.gh_mm = gh_mm
@@ -88,7 +95,7 @@ class SelfDriveNode(Node):
         self.ros_height = gw_mm // cw_mm
 
         # --- waypoint publisher ---
-        self.wp_pub = self.create_publisher(PointStamped, 'waypoint/self_drive', 10)
+        self.wp_pub = self.create_publisher(PointStamped, '/goal', 10)
 
     def publish_occ_grid(self, grid_np):
         # ---- coordinate transform to REP 103 ----
@@ -309,7 +316,11 @@ def main(function_type="right_turn"):
     if(function_type == "right"):
         function = RightTurn(debug=False)
     elif(function_type == "left"):
-        function = LeftTurn(debug=False)
+        function = LeftTurn(debug=True)
+    elif(function_type == "pedlanechange"):
+        function = ReallyGoodStateMachine()
+    elif(function_type == "curvedlanekeep"):
+        function = CurvedLanekeeping(debug=False)
     else:
         print(f"Invalid turn type: {function_type}. Must be 'right' or 'left'.")
         exit(1)
@@ -322,7 +333,32 @@ def main(function_type="right_turn"):
     image_mat = sl.Mat()
     depth_m = sl.Mat()
 
+    with open("hsv_values.json", "r") as file:
+        all_json_keys = json.load(file)
+        json_dict = all_json_keys.get(str(hsv_identifier), {})
+
+        if "__ZED_SETTINGS__" in json_dict:
+            zed_settings = json_dict["__ZED_SETTINGS__"]
+        else:
+            print("No ZED settings found in JSON, using defaults.")
+            zed_settings = {
+                "BRIGHTNESS": 5,
+                "CONTRAST": 5,
+                "HUE": 5,
+                "SATURATION": 5,
+                "SHARPNESS": 5,
+                "GAMMA": 6
+            }
+
+    cam.set_camera_settings(sl.VIDEO_SETTINGS.BRIGHTNESS, zed_settings["BRIGHTNESS"])
+    cam.set_camera_settings(sl.VIDEO_SETTINGS.CONTRAST, zed_settings["CONTRAST"])
+    cam.set_camera_settings(sl.VIDEO_SETTINGS.HUE, zed_settings["HUE"])
+    cam.set_camera_settings(sl.VIDEO_SETTINGS.SATURATION, zed_settings["SATURATION"])
+    cam.set_camera_settings(sl.VIDEO_SETTINGS.SHARPNESS, zed_settings["SHARPNESS"])
+    cam.set_camera_settings(sl.VIDEO_SETTINGS.GAMMA, zed_settings["GAMMA"])
+    last_publish = None
     key = 0
+    start = time.time()
     while key != 113:  # for 'q' key
         err = cam.grab(runtime)
         if err <= sl.ERROR_CODE.SUCCESS:  # good to go
@@ -332,11 +368,17 @@ def main(function_type="right_turn"):
                 depth_m, sl.MEASURE.DEPTH, sl.MEM.CPU, low_res)
 
             image = image_mat.get_data()
+            image = cv2.cvtColor(image, cv2.COLOR_BGRA2BGR)
             depths = ransac.plane.clean_depths(depth_m.get_data())
 
+            if time.time() - start < 5:
+                print("Warming up the camera...")
+                continue
+
             # >>> change: run RightTurn on the frame to get final mask + pixel waypoint
-            turn_mask, turn_centroid = function.run_frame(hsv_identifier, image)
+            turn_mask, turn_centroid = function.run_frame(hsv_identifier, image) # hsv_identifier, 
             # <<< end of change
+            print(f"done, centroid: {turn_centroid}")  
 
             # >>> change: Using new efficient ransac library
             ground_mask, pixel_coeffs = ransac.plane.ground_plane(depths)
@@ -347,10 +389,14 @@ def main(function_type="right_turn"):
 
             # >>> change: publish occ grid and waypoint from single node
             node.publish_occ_grid(full_occ)
-
-            odom_waypoint = pixel_waypoint_to_odom(
-                turn_centroid, depths, pixel_coeffs, real_coeffs, intrinsics)
-            node.publish_waypoint(odom_waypoint)
+            now = node.get_clock().now()
+            if last_publish is None or (now - last_publish).nanoseconds >= 2.0 * 1e9:     
+                # print(f"Last publish {last_publish}, now {now}")           
+                odom_waypoint = pixel_waypoint_to_odom(
+                    turn_centroid, depths, pixel_coeffs, real_coeffs, intrinsics)
+                print(f"Publishing waypoint at odom coords: {odom_waypoint}")
+                node.publish_waypoint(odom_waypoint)
+                last_publish = now
             # <<< end of change
 
             full_occ_vis = cv2.cvtColor(full_occ, cv2.COLOR_GRAY2BGR)

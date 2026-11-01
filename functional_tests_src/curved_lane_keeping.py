@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 from hsv import hsv
-from functional_test_parent import FunctionalTest
+from functional_tests.functional_test_parent import FunctionalTest
 
 class CurvedLanekeeping(FunctionalTest):
     # Left and right bounds should be kept symmetric
