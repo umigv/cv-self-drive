@@ -1,3 +1,4 @@
+import cv2
 from functional_test_parent import FunctionalTest
 
 class ObstructedPedestrianDetection(FunctionalTest):

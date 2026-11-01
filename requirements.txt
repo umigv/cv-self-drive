@@ -82,8 +82,6 @@ distro==1.7.0
 distro-info==1.1+ubuntu0.2
 docutils==0.17.1
 domain-coordinator==0.10.0
-# Editable install with no version control (drivable-area==0.0.0)
--e /home/umarv/ros2_ws/build/drivable_area
 dulwich==0.20.31
 duplicity==0.8.21
 durationpy==0.10
@@ -215,7 +213,6 @@ pytz==2022.1
 PyWavelets==1.8.0
 pyxdg==0.27
 PyYAML==5.4.1
-pyzed @ file:///usr/local/zed/zed-python-api/src/pyzed-5.1-cp310-cp310-linux_aarch64.whl
 qt-dotgraph==2.2.4
 qt-gui==2.2.4
 qt-gui-cpp==2.2.4
@@ -318,8 +315,6 @@ theora-image-transport==2.5.4
 tifffile==2025.5.10
 toml==0.10.2
 topic-monitor==0.20.7
-torch @ file:///home/umarv/ros2_ws/torch-2.5.0a0%2B872d972e41.nv24.08.17622132-cp310-cp310-linux_aarch64.whl
-torchvision @ file:///home/umarv/torchvision_new
 tqdm==4.67.1
 trajectory-msgs==4.9.0
 turtlesim==1.4.3
