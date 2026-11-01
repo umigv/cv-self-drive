@@ -1,6 +1,7 @@
 import numpy as np
 import cv2
-from functional_tests.functional_test_parent import FunctionalTest
+from functional_test_parent import FunctionalTest
+
 from ultralytics import YOLO
 
 class LaneChangeStateMachine(FunctionalTest):
@@ -275,7 +276,7 @@ class LaneChangeStateMachine(FunctionalTest):
         radius = 25
         color = [255,100,0]
         cv2.circle(img, center, radius, color, thickness=3, lineType=8, shift=0)
-        cv2.imshow("waypoint",img)
+        cv2.imshow("waypoint",img[:, img.shape[1]//2 :])
 
     def find_waypoint_right(self, y_in, img, prev_x):
         height, width = img.shape
@@ -379,6 +380,7 @@ class LaneChangeStateMachine(FunctionalTest):
             done, self.x_waypoint, full_mask = self.change_lanes( img, self.y_waypoint,prev_x)
             self.add_waypoint(self.y_waypoint,img, self.x_waypoint)
             print(f"self.x_waypoint : {self.x_waypoint}")
+            print(f"self.y_waypoint : {self.y_waypoint}")
             prev_x = self.x_waypoint
             cv2.imshow("withwaypoint", full_mask)
 

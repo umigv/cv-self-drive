@@ -22,7 +22,6 @@ functional_test_path = ""
 
 if(mode ==  "pedestrian-lane-change"):
     pedestrian_lane_change_test = LaneChangeStateMachine(pedestrian_lane_change_test_path) # Change test path depending on the test that is being run
-    pedestrian_lane_change_test.set_right_to_left()
     pedestrian_lane_change_test.run()
 
 elif(mode == "curved-lane"):
