@@ -40,6 +40,6 @@ elif(mode == "tire-detection"):
 
 elif(mode == "unobstructed_pedestrian_stop"):
     print('start')
-    unobstructed_pedestrian_stop_test = UnobstructedPedestrianStop(unobstructed_pedestrian_stop_test_path)
+    unobstructed_pedestrian_stop_test = UnobstructedPedestrianStop(unobstructed_pedestrian_stop_test_path, stop_size_threshold=0.21)
     unobstructed_pedestrian_stop_test.main()
     print('done')
