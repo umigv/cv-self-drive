@@ -1,14 +1,16 @@
 from pedestrian_lane_changing import LaneChangeStateMachine
 from obstructed_pedestrian_detection import ObstructedPedestrianDetection
 from curved_lane_keeping import CurvedLanekeeping
+from unobstructed_pedestrian_stop import UnobstructedPedestrianStop
 # from tire_detection_img import TireDetection  # Need to po tire detection to use the general functional test scaffold 
 
 # ===================================================
 # Specify Mode for which test you would like to run: 
-mode = "pedestrian-lane-change"
+#mode = "pedestrian-lane-change"
 # mode = "obstructed-pedestrian"
 # mode = "curved-lane"
 # mode = "tire-detection"
+mode = "unobstructed_pedestrian_stop"
 
 # ===================================================
 # Specify what the test path is (what video you are using to test)
@@ -17,6 +19,7 @@ pedestrian_lane_change_test_path = "../data/HD2K_SN36466710_18-50-10.mp4"
 obstructed_pedestrian_test_path = "../data"
 curved_lane_test_path = "../data"
 functional_test_path = "" 
+unobstructed_pedestrian_stop_test_path = "data/Pedestrian_Stop.MOV"
 #
 # ===================================================
 
@@ -34,3 +37,7 @@ elif(mode == "obstructed-pedestrian"):
 elif(mode == "tire-detection"):
     # tire_detection_test = 
     x = 0
+
+elif(mode == "unobstructed_pedestrian_stop"):
+    unobstructed_pedestrian_stop_test = UnobstructedPedestrianStop(unobstructed_pedestrian_stop_test_path)
+    unobstructed_pedestrian_stop_test.main()

@@ -23,8 +23,9 @@ the run ends once the vehicle stops, there is no "resume lane keeping" state.
 """
 
 class UnobstructedPedestrianStop(FunctionalTest):
-    def __init__(self, pedestrian_model=None, stop_size_threshold=0.12, confidence_threshold=0.7):
+    def __init__(self, videopath=0, pedestrian_model=None, stop_size_threshold=0.12, confidence_threshold=0.7):
         super().__init__()
+        self.videopath = videopath
         self.image = None
         self.height = 0
         self.width = 0
@@ -126,10 +127,10 @@ class UnobstructedPedestrianStop(FunctionalTest):
         from ultralytics import YOLO
 
         if self.pedestrian_model is None:
-            self.pedestrian_model = YOLO("./data/yolov8n.pt")
+            self.pedestrian_model = YOLO("../data/yolov8n.pt")
 
-        cap = cv2.VideoCapture("placeholder.mp4")
-        self.hsv_obj = hsv("placeholder.mp4")
+        cap = cv2.VideoCapture(self.videopath)
+        self.hsv_obj = hsv(self.videopath)
 
         while cap.isOpened():
             ret, self.image = cap.read()
