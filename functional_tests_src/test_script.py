@@ -19,7 +19,7 @@ pedestrian_lane_change_test_path = "../data/HD2K_SN36466710_18-50-10.mp4"
 obstructed_pedestrian_test_path = "../data"
 curved_lane_test_path = "../data"
 functional_test_path = "" 
-unobstructed_pedestrian_stop_test_path = "data/Pedestrian_Stop.MOV"
+unobstructed_pedestrian_stop_test_path = "../data/Pedestrian_Stop.MOV"
 #
 # ===================================================
 
@@ -39,5 +39,7 @@ elif(mode == "tire-detection"):
     x = 0
 
 elif(mode == "unobstructed_pedestrian_stop"):
+    print('start')
     unobstructed_pedestrian_stop_test = UnobstructedPedestrianStop(unobstructed_pedestrian_stop_test_path)
     unobstructed_pedestrian_stop_test.main()
+    print('done')
